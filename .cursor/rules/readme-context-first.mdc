@@ -1,0 +1,17 @@
+---
+description: Consultar README.md antes de proponer o editar cambios
+alwaysApply: true
+---
+
+# Contexto inicial obligatorio
+
+Antes de responder, proponer una solución o modificar código en este repositorio:
+
+1. Lee `README.md`.
+2. Usa el README como fuente de verdad para objetivos, alcance y arquitectura.
+3. Si la petición contradice el README, señala la discrepancia y pide confirmación.
+4. Mantén cualquier propuesta alineada con el dominio y objetivos descritos en el README.
+
+# Excepción
+
+Si la tarea del usuario no depende del contexto del proyecto (por ejemplo, una consulta puramente sintáctica), puedes responder sin bloquear el flujo, pero prioriza revisar `README.md` cuando haya dudas.

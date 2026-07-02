@@ -1,59 +1,105 @@
 # WiLauncher
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.4.
+## Objetivo del proyecto
 
-## Development server
+WiLauncher es una aplicación interna para el equipo de Operaciones de Wiloc cuyo objetivo es centralizar la gestión de infraestructura cloud desde una única interfaz web.
 
-To start a local development server, run:
+La aplicación permitirá visualizar y gestionar recursos desplegados en distintos proveedores cloud:
 
-```bash
-ng serve
+- AWS
+- Microsoft Azure
+- Google Cloud Platform (GCP)
+- Oracle Cloud Infrastructure (OCI)
+
+## Problema actual
+
+Actualmente la gestión de servidores y máquinas virtuales se realiza desde diferentes consolas y herramientas dependiendo del proveedor cloud utilizado.
+
+Esto provoca:
+
+- Cambio constante entre plataformas.
+- Diferencias de interfaz y experiencia de usuario.
+- Mayor tiempo para realizar operaciones simples.
+- Mayor riesgo de errores operativos.
+- Dificultad para delegar tareas al equipo de operaciones.
+
+## Objetivos funcionales
+
+WiLauncher deberá permitir:
+
+- Autenticación mediante cuenta corporativa Microsoft.
+- Visualización del inventario de máquinas disponibles.
+- Consulta del estado actual de cada máquina:
+  - Running
+  - Stopped
+  - Starting
+  - Stopping
+  - Error
+- Arranque de máquinas.
+- Apagado de máquinas.
+- Filtrado por:
+  - Proveedor cloud
+  - Entorno
+  - Estado
+- Registro de auditoría de todas las operaciones realizadas.
+
+## Objetivos técnicos
+
+La aplicación se construirá utilizando:
+
+- Angular 22
+- Firebase Authentication
+- Firestore
+- Firebase Hosting
+- Firebase Functions o backend equivalente para la integración con los proveedores cloud
+
+## Arquitectura de alto nivel
+
+```text
+Usuario
+   ↓
+WiLauncher (Angular)
+   ↓
+Backend seguro
+   ↓
+AWS / Azure / GCP / OCI
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+El frontend nunca tendrá acceso directo a las credenciales de los proveedores cloud.
 
-## Code scaffolding
+Todas las operaciones sensibles se ejecutarán desde un backend seguro utilizando identidades técnicas con permisos mínimos.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Seguridad
 
-```bash
-ng generate component component-name
-```
+Principios de diseño:
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Mínimo privilegio.
+- Credenciales fuera del frontend.
+- Auditoría completa de acciones.
+- Confirmaciones adicionales para entornos productivos.
+- Gestión de permisos por rol.
 
-```bash
-ng generate --help
-```
+## Roles previstos
 
-## Building
+### Viewer
 
-To build the project run:
+Puede consultar información.
 
-```bash
-ng build
-```
+### Operator
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Puede arrancar y detener máquinas.
 
-## Running unit tests
+### Admin
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Puede administrar configuraciones y permisos.
 
-```bash
-ng test
-```
+## Visión futura
 
-## Running end-to-end tests
+En el futuro WiLauncher podrá incorporar:
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Gestión de costes cloud.
+- Monitorización y alertas.
+- Gestión de despliegues.
+- Estado de servicios y aplicaciones.
+- Gestión de contenedores y Kubernetes.
+- Informes de utilización.

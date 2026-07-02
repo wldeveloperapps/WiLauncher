@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+---
+## 1. Design system Wiloc (tokens)
+
+Fuente de verdad: los tokens CSS del design system Wiloc. Úsalos vía `var(--*)`; **no inventes colores, tamaños ni espaciados.**
+
+### Color
+- Marca: negro `#000`, blanco `#FFF`, **un único verde** `#43B283` (hover `#368E69`). El verde es acento: **≤20% de la pantalla**, solo para CTA/activo/success. Nunca un relleno verde grande, nunca junto a otro acento.
+- Rampa neutra: `#F4F4F4 · #E8E8E8 · #DDD · #AAA · #555 · #2A2A2A · #1F1F1F · #111 · #000`.
+- **Estados semánticos (obligatorios para el estado de máquina):**
+  - `Running`  = verde `#43B283`
+  - `Stopped`  = gris  `#AAAAAA`
+  - `Starting` / `Stopping` = ámbar `#E8A838` (con punto pulsante)
+  - `Error`    = rojo  `#D64545`
+- **Sin gradientes** en superficies de UI (solo el scrim negro sobre fotos B/N está permitido).
+
+### Tipografía
+- **Source Sans 3** (Source Sans Pro) → UI, cuerpo, labels.
+- **Source Code Pro** (mono) → **todo dato técnico**: IDs (`WL-4821-AC`), regiones, IPs, timestamps (`14:02:11Z`), tipos de instancia, y **títulos de pantalla** (estilo terminal). Los títulos de WiLauncher van en mono.
+- Escala: Display 56 / H1 40 / H2 32 / H3 24 / Body 16 / Small 14 / XS 12. Máx 2 pesos por pantalla.
+- Mayúsculas solo en labels/eyebrows pequeños, siempre con `letter-spacing: 0.08em`. Nunca una frase entera en mayúsculas.
+
+### Espaciado, radios, sombras, motion
+- **Base-8**: todo margen/padding es múltiplo de 8px. Nada de 7px/13px/22px.
+- Radios: inputs/botones 6px, tarjetas 8px, máx 12px; pills (`9999px`) solo para chips/badges.
+- Sombras neutras y sutiles (máx `0 4px 16px rgba(0,0,0,.12)`), nunca de color, nunca apiladas. Elevación solo en hover de elementos interactivos.
+- Motion contenido: 150ms en hover/focus, hasta 400ms en nav/datos, easing `ease`. La única animación en bucle es el punto de estado pulsante — **desactívala con `prefers-reduced-motion`**.
+
+### Tema
+- Soporta **claro y oscuro** con conmutador. El oscuro es el modo por defecto (control room). Implementa vía la clase `.wiloc-dark` en la raíz, que reasigna los alias semánticos (`--bg-base`, `--surface-card`, `--text-primary`, etc.). Persiste la elección del usuario.
+
+---
+
+## 2. Componentes base
+
+Reutiliza los primitivos del design system Wiloc (Button, Badge, StatusDot, Input, Select, Card, MetricCard, Tabs, Avatar, Checkbox, Switch, IconButton). Reglas propias de WiLauncher:
+
+- **StatusBadge**: pill = punto de color de estado + label en mayúsculas. Color por el mapa semántico de §4. `Starting`/`Stopping` pulsan. Es el componente más repetido — hazlo un componente único y testéalo.
+- **Botón primario (verde)**: solo el CTA principal de cada contexto (login, confirmar arranque). No lo repartas por toda la tabla.
+- **Acción de arranque** = botón verde `Arrancar`. **Acción de apagado** = botón outline neutro `Apagar` (destructivo pero reversible; el peso rojo se reserva para el modal de producción).
+- **Chip de entorno**: `DEV` (neutro), `STG` (neutro), `PROD` (**ámbar, con borde**) — PROD siempre visualmente distinto.
+- **Glyph de proveedor**: cuadrado con la inicial (A/A/G/O) y color del proveedor. No dibujes los logos oficiales de AWS/Azure/GCP/OCI (marca de terceros); el glyph + texto basta.
+
+---
+
+## 3. Referencia de diseño Claude (contexto persistente)
+
+- Archivo de referencia principal de UI: `docs/design/WiLauncher.html`.
+- Antes de proponer o implementar cambios de interfaz, lee este archivo y úsalo como contexto visual.
+- Si hay contradicción entre esta referencia y el design system/tokens de este documento, prioriza este documento y mantén consistencia con Wiloc.
