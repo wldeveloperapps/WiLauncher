@@ -1,0 +1,54 @@
+<section class="audit">
+  <header class="audit__header">
+    <div>
+      <span class="eyebrow">Registro</span>
+      <h2 class="audit__title font-mono">// audit_log</h2>
+    </div>
+  </header>
+
+  @if (auditService.errorMessage()) {
+    <p class="audit__error">{{ auditService.errorMessage() }}</p>
+  }
+
+  @if (auditService.isLoading()) {
+    <p class="audit__status">Cargando auditoria...</p>
+  } @else if (auditService.entries().length === 0) {
+    <div class="audit__empty">
+      <p class="font-mono">// no_audit_entries</p>
+      <p>No hay registros de auditoria todavia.</p>
+    </div>
+  } @else {
+    <div class="audit__table-wrapper">
+      <table class="audit__table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Accion</th>
+            <th>Maquina</th>
+            <th>Proveedor</th>
+            <th>Entorno</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of auditService.entries(); track entry.id) {
+            <tr>
+              <td class="font-mono">{{ formatTimestamp(entry.createdAt) }}</td>
+              <td>{{ auditActionLabel(entry.action) }}</td>
+              <td class="font-mono">{{ entry.machineId }}</td>
+              <td>
+                <app-provider-glyph [provider]="entry.provider" />
+              </td>
+              <td>
+                <app-env-chip [environment]="entry.environment" />
+              </td>
+              <td>{{ entry.requestedBy.email ?? entry.requestedBy.uid }}</td>
+              <td>{{ roleLabel(entry.requestedBy.role) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

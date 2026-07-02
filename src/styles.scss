@@ -1,1 +1,136 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap');
+
+:root {
+  /* Brand */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-green: #43b283;
+  --color-green-hover: #368e69;
+
+  /* Neutrals */
+  --color-neutral-50: #f4f4f4;
+  --color-neutral-100: #e8e8e8;
+  --color-neutral-200: #dddddd;
+  --color-neutral-300: #aaaaaa;
+  --color-neutral-500: #555555;
+  --color-neutral-700: #2a2a2a;
+  --color-neutral-800: #1f1f1f;
+  --color-neutral-900: #111111;
+
+  /* Semantic states */
+  --color-running: #43b283;
+  --color-stopped: #aaaaaa;
+  --color-transitioning: #e8a838;
+  --color-error: #d64545;
+  --color-prod: #e8a838;
+
+  /* Provider colors */
+  --color-aws: #ff9900;
+  --color-azure: #0078d4;
+  --color-gcp: #4285f4;
+  --color-oci: #c74634;
+
+  /* Spacing (base-8) */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Motion */
+  --motion-fast: 150ms ease;
+  --motion-normal: 250ms ease;
+  --motion-slow: 400ms ease;
+
+  /* Typography */
+  --font-ui: 'Source Sans 3', 'Segoe UI', sans-serif;
+  --font-mono: 'Source Code Pro', 'Consolas', monospace;
+
+  /* Light theme aliases (default class on html without wiloc-dark) */
+  --bg-base: var(--color-neutral-50);
+  --bg-elevated: var(--color-white);
+  --surface-card: var(--color-white);
+  --surface-sidebar: var(--color-white);
+  --border-default: var(--color-neutral-100);
+  --border-subtle: var(--color-neutral-200);
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-500);
+  --text-muted: var(--color-neutral-300);
+  --accent-primary: var(--color-green);
+  --accent-primary-hover: var(--color-green-hover);
+}
+
+.wiloc-dark {
+  --bg-base: var(--color-neutral-900);
+  --bg-elevated: var(--color-neutral-800);
+  --surface-card: var(--color-neutral-800);
+  --surface-sidebar: var(--color-black);
+  --border-default: var(--color-neutral-700);
+  --border-subtle: var(--color-neutral-700);
+  --text-primary: var(--color-neutral-50);
+  --text-secondary: var(--color-neutral-300);
+  --text-muted: var(--color-neutral-500);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  margin: 0;
+  min-height: 100dvh;
+  transition:
+    background-color var(--motion-normal),
+    color var(--motion-normal);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

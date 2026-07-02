@@ -1,0 +1,55 @@
+<div class="layout">
+  <aside class="layout__sidebar">
+    <div class="layout__brand">
+      <h1 class="layout__logo font-mono">WiLauncher</h1>
+      <p class="layout__tagline">Control room</p>
+    </div>
+
+    <nav class="layout__nav">
+      <a routerLink="/" routerLinkActive="layout__nav-link--active" [routerLinkActiveOptions]="{ exact: true }">
+        Inventario
+      </a>
+      <a routerLink="/audit" routerLinkActive="layout__nav-link--active">Auditoria</a>
+    </nav>
+  </aside>
+
+  <div class="layout__main">
+    <header class="layout__header">
+      <div class="layout__header-left">
+        <span class="eyebrow">Panel de operaciones</span>
+        <h2 class="layout__page-title font-mono">// infra_cloud_ops</h2>
+      </div>
+
+      <div class="layout__header-right">
+        <app-switch
+          [checked]="themeService.isDark()"
+          label="Oscuro"
+          (toggled)="themeService.toggle()"
+        />
+
+        <div class="layout__session">
+          <div class="layout__user-info">
+            <span class="layout__user-name">{{ authService.displayName() }}</span>
+            <span class="layout__role-badge">{{ roleLabel(sessionService.role()) }}</span>
+          </div>
+          <button
+            type="button"
+            class="layout__logout"
+            [disabled]="authService.isBusy()"
+            (click)="authService.logout()"
+          >
+            Cerrar sesion
+          </button>
+        </div>
+      </div>
+    </header>
+
+    @if (authService.errorMessage()) {
+      <p class="layout__error">{{ authService.errorMessage() }}</p>
+    }
+
+    <main class="layout__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

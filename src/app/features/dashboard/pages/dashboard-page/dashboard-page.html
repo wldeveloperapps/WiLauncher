@@ -1,0 +1,131 @@
+<section class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <span class="eyebrow">Inventario</span>
+      <h2 class="dashboard__title font-mono">// machines</h2>
+    </div>
+  </header>
+
+  <div class="dashboard__metrics">
+    <app-metric-card label="Running" [value]="metrics().running" variant="running" />
+    <app-metric-card label="Stopped" [value]="metrics().stopped" variant="stopped" />
+    <app-metric-card label="Error" [value]="metrics().error" variant="error" />
+    <app-metric-card label="Total" [value]="metrics().total" variant="default" />
+  </div>
+
+  <div class="dashboard__filters">
+    <app-select
+      label="Proveedor"
+      [value]="filterProvider()"
+      [options]="providerOptions"
+      (valueChange)="filterProvider.set($event)"
+    />
+    <app-select
+      label="Entorno"
+      [value]="filterEnvironment()"
+      [options]="environmentOptions"
+      (valueChange)="filterEnvironment.set($event)"
+    />
+    <app-select
+      label="Estado"
+      [value]="filterStatus()"
+      [options]="statusOptions"
+      (valueChange)="filterStatus.set($event)"
+    />
+    <app-input
+      label="Buscar"
+      [value]="searchQuery()"
+      placeholder="ID, nombre, region, IP..."
+      (valueChange)="searchQuery.set($event)"
+    />
+  </div>
+
+  @if (machinesService.errorMessage()) {
+    <p class="dashboard__error">{{ machinesService.errorMessage() }}</p>
+  }
+
+  @if (machinesService.isLoading()) {
+    <p class="dashboard__status">Cargando inventario...</p>
+  } @else if (filteredMachines().length === 0) {
+    <div class="dashboard__empty">
+      <p class="font-mono">// no_machines_found</p>
+      <p>No hay maquinas que coincidan con los filtros actuales.</p>
+    </div>
+  } @else {
+    <div class="dashboard__table-wrapper">
+      <table class="dashboard__table">
+        <thead>
+          <tr>
+            <th>Proveedor</th>
+            <th>Nombre / ID</th>
+            <th>Region</th>
+            <th>IP</th>
+            <th>Tipo</th>
+            <th>Entorno</th>
+            <th>Estado</th>
+            @if (sessionService.canOperate()) {
+              <th>Acciones</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (machine of filteredMachines(); track machine.id) {
+            <tr>
+              <td>
+                <app-provider-glyph [provider]="machine.provider" />
+              </td>
+              <td>
+                <div class="dashboard__machine-name">{{ machine.name ?? machineId(machine) }}</div>
+                <div class="dashboard__machine-id font-mono">{{ machineId(machine) }}</div>
+              </td>
+              <td class="font-mono">{{ machine.region ?? '—' }}</td>
+              <td class="font-mono">{{ machine.ipAddress ?? '—' }}</td>
+              <td class="font-mono">{{ machine.instanceType ?? '—' }}</td>
+              <td>
+                <app-env-chip [environment]="machine.environment" />
+              </td>
+              <td>
+                <app-status-badge [status]="machine.status" />
+              </td>
+              @if (sessionService.canOperate()) {
+                <td class="dashboard__actions">
+                  @if (machine.status === 'stopped') {
+                    <app-button
+                      variant="primary"
+                      [disabled]="isActionDisabled(machine)"
+                      [loading]="machinesService.actionInProgress() === machineId(machine)"
+                      (clicked)="requestStart(machine)"
+                    >
+                      Arrancar
+                    </app-button>
+                  }
+                  @if (machine.status === 'running') {
+                    <app-button
+                      variant="outline"
+                      [disabled]="isActionDisabled(machine)"
+                      [loading]="machinesService.actionInProgress() === machineId(machine)"
+                      (clicked)="requestStop(machine)"
+                    >
+                      Apagar
+                    </app-button>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <app-confirm-dialog
+    [open]="confirmOpen()"
+    [title]="confirmTitle()"
+    [message]="confirmMessage()"
+    [confirmLabel]="confirmLabel()"
+    [danger]="isProdConfirm()"
+    [loading]="confirmLoading()"
+    (confirmed)="onConfirm()"
+    (cancelled)="closeConfirm()"
+  />
+</section>

@@ -9,4 +9,8 @@ export const environment = {
     appId: '1:775063189008:web:e4e4515dc9bd569209fc95',
     measurementId: 'G-198LTZWTTC',
   },
+  auth: {
+    // Completar con el tenant de Entra ID cuando el equipo de IT lo comparta.
+    microsoftTenantId: '',
+  },
 };

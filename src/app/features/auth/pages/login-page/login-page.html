@@ -1,0 +1,29 @@
+<main class="login-page">
+  <section class="login-card">
+    <header class="login-card__header">
+      <span class="eyebrow">Wiloc Operaciones</span>
+      <h1 class="login-card__title font-mono">WiLauncher</h1>
+      <p class="login-card__subtitle">Acceso corporativo para operaciones de infraestructura cloud</p>
+    </header>
+
+    <app-button
+      variant="primary"
+      [disabled]="authService.isBusy()"
+      [loading]="authService.isBusy()"
+      (clicked)="authService.signInWithMicrosoft()"
+    >
+      Entrar con Microsoft
+    </app-button>
+
+    @if (!authService.hasTenantConfigured()) {
+      <p class="login-card__warning">
+        Configuracion pendiente: define <code>auth.microsoftTenantId</code> en los entornos
+        cuando recibas los datos de Azure/Entra ID.
+      </p>
+    }
+
+    @if (authService.errorMessage()) {
+      <p class="login-card__error">{{ authService.errorMessage() }}</p>
+    }
+  </section>
+</main>
