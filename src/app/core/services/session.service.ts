@@ -2,6 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
 import { canOperate, UserRole } from '../models/role.model';
+import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
 interface SessionContextResponse {
@@ -23,6 +24,8 @@ export class SessionService {
   readonly errorMessage = signal<string | null>(null);
   readonly canOperate = computed(() => canOperate(this.role()));
 
+  private readonly devRoleOverride = signal<UserRole | null>(null);
+
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
@@ -31,13 +34,36 @@ export class SessionService {
       } else {
         this.role.set('viewer');
         this.errorMessage.set(null);
+        this.devRoleOverride.set(null);
       }
     });
+  }
+
+  setDevRoleOverride(role: UserRole): void {
+    this.devRoleOverride.set(role);
+    this.role.set(role);
+  }
+
+  clearDevRoleOverride(): void {
+    this.devRoleOverride.set(null);
+  }
+
+  reloadSession(): void {
+    if (this.authService.currentUser()) {
+      void this.loadSessionContext();
+    }
   }
 
   private async loadSessionContext(): Promise<void> {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+
+    const devOverride = this.devRoleOverride();
+    if (!environment.production && devOverride) {
+      this.role.set(devOverride);
+      this.isLoading.set(false);
+      return;
+    }
 
     try {
       const callable = httpsCallable<void, SessionContextResponse>(this.functions, 'getSessionContext');

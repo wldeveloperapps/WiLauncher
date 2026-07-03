@@ -1,0 +1,82 @@
+{
+  "common": {
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "themeToggleAria": "Cambiar a tema {{theme}}"
+  },
+  "login": {
+    "heroTitle": "Consola operativa multi-cloud.",
+    "heroSubtitle": "Arranca y detén tu infraestructura de AWS, Azure, GCP y OCI desde una sola interfaz auditada.",
+    "heroFooter": "wiloc.com · Operaciones IT · acceso restringido",
+    "eyebrow": "Herramienta interna",
+    "title": "WiLauncher",
+    "lead": "Autentícate con tu cuenta corporativa para acceder a la consola.",
+    "connecting": "Conectando...",
+    "microsoft": "Continuar con Microsoft",
+    "tenantWarning": "Configuración pendiente: define auth.microsoftTenantId en los entornos cuando recibas los datos de Azure/Entra ID.",
+    "secureAccess": "acceso seguro",
+    "security": "WiLauncher nunca muestra ni almacena credenciales cloud. Solo orquesta acciones mediante conexiones federadas seguras.",
+    "langToggleAria": "Cambiar idioma a {{lang}}",
+    "devTitle": "Modo desarrollo",
+    "devHint": "Entra con usuario de prueba en Firebase (Email/Password). El rol seleccionado se aplica en la interfaz.",
+    "devRole": "Rol de prueba",
+    "devButton": "Entrar en modo desarrollo"
+  },
+  "layout": {
+    "home": "WiLauncher inicio",
+    "navInventory": "Inventario",
+    "navAudit": "Auditoría",
+    "logout": "Cerrar sesión"
+  },
+  "dashboard": {
+    "pageTitle": "Inventario de máquinas",
+    "pageSubtitle": "VMs orquestadas · multi-cloud",
+    "searchPlaceholder": "Buscar nombre, ID, región...",
+    "loading": "Cargando inventario...",
+    "emptyTitle": "// no_machines_found",
+    "emptyMessage": "No hay máquinas que coincidan con los filtros actuales.",
+    "provider": "Proveedor",
+    "environment": "Entorno",
+    "status": "Estado",
+    "machine": "Máquina",
+    "actions": "Acciones",
+    "start": "Arrancar",
+    "stop": "Apagar",
+    "running": "Running",
+    "stopped": "Stopped",
+    "error": "Error",
+    "all": "Todos",
+    "allEnvironments": "Todos los entornos",
+    "allStatuses": "Todos los estados",
+    "groupProvider": "Agrupar: Proveedor",
+    "groupNone": "Sin agrupar",
+    "groupBy": "Agrupar",
+    "results": "{{filtered}} / {{total}} resultados",
+    "refresh": "Actualizar inventario",
+    "filters": "Filtros"
+  },
+  "confirm": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "confirmStart": "Confirmar arranque",
+    "confirmStop": "Confirmar apagado",
+    "messageStart": "Vas a arrancar la máquina {{id}} en entorno {{env}}.",
+    "messageStop": "Vas a apagar la máquina {{id}} en entorno {{env}}."
+  },
+  "audit": {
+    "pageTitle": "Registro de auditoría",
+    "pageSubtitle": "Historial de operaciones · multi-cloud",
+    "loading": "Cargando auditoría...",
+    "emptyTitle": "// no_audit_entries",
+    "emptyMessage": "No hay registros de auditoría todavía.",
+    "timestamp": "Timestamp",
+    "action": "Acción",
+    "machine": "Máquina",
+    "provider": "Proveedor",
+    "environment": "Entorno",
+    "user": "Usuario",
+    "role": "Rol",
+    "startAction": "Arranque",
+    "stopAction": "Apagado"
+  }
+}

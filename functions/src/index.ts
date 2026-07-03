@@ -1,4 +1,5 @@
 import {getApps, initializeApp} from "firebase-admin/app";
+import {getAuth} from "firebase-admin/auth";
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {
@@ -54,6 +55,22 @@ export const getSessionContext = onCall(async (request) => {
     email: user.email,
     role: user.role,
   };
+});
+
+export const setDevRole = onCall(async (request) => {
+  if (process.env.FUNCTIONS_EMULATOR !== "true") {
+    throw new HttpsError(
+      "permission-denied",
+      "setDevRole solo esta disponible con emuladores locales.",
+    );
+  }
+
+  const user = requireAuthenticatedUser(request);
+  const role = parseDevRole(request.data);
+
+  await getAuth().setCustomUserClaims(user.uid, {role});
+
+  return {role};
 });
 
 export const listMachines = onCall(async (request) => {
@@ -136,6 +153,27 @@ function resolveUserRole(rawRole: unknown): UserRole {
   }
 
   return "viewer";
+}
+
+/**
+ * Parses dev role payload for emulator-only callable.
+ * @param {unknown} data Raw callable payload.
+ * @return {UserRole} Parsed role.
+ */
+function parseDevRole(data: unknown): UserRole {
+  if (!data || typeof data !== "object") {
+    throw new HttpsError("invalid-argument", "Debes indicar un rol.");
+  }
+
+  const role = (data as {role?: string}).role?.trim().toLowerCase() as UserRole;
+  if (!role || !ROLES.includes(role)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "role debe ser viewer, operator o admin.",
+    );
+  }
+
+  return role;
 }
 
 /**

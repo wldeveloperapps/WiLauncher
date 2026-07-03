@@ -1,10 +1,11 @@
 import { Component, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Button } from '../button/button';
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [Button],
+  imports: [Button, TranslocoPipe],
   template: `
     @if (open()) {
       <div class="dialog-backdrop" (click)="cancelled.emit()" (keydown.escape)="cancelled.emit()">
@@ -18,7 +19,7 @@ import { Button } from '../button/button';
           <h2 class="dialog__title font-mono">{{ title() }}</h2>
           <p class="dialog__message">{{ message() }}</p>
           <div class="dialog__actions">
-            <app-button variant="outline" (clicked)="cancelled.emit()">Cancelar</app-button>
+            <app-button variant="outline" (clicked)="cancelled.emit()">{{ 'confirm.cancel' | transloco }}</app-button>
             <app-button
               [variant]="danger() ? 'danger' : 'primary'"
               [loading]="loading()"

@@ -1,7 +1,19 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { OAuthProvider, User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import {
+  AuthError,
+  OAuthProvider,
+  User,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updateProfile,
+} from 'firebase/auth';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 
+import { UserRole } from '../models/role.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -9,6 +21,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private readonly auth = inject(Auth);
+  private readonly functions = inject(Functions);
   private resolveInitialized!: () => void;
   private readonly initializedPromise = new Promise<void>((resolve) => {
     this.resolveInitialized = resolve;
@@ -23,6 +36,9 @@ export class AuthService {
     () => this.currentUser()?.displayName || this.currentUser()?.email || this.currentUser()?.uid || '',
   );
   readonly hasTenantConfigured = computed(() => Boolean(environment.auth.microsoftTenantId?.trim()));
+  readonly isDevLoginEnabled = computed(
+    () => !environment.production && environment.auth.devLogin.enabled,
+  );
 
   private readonly unsubscribeAuthListener = onAuthStateChanged(this.auth, (user) => {
     this.currentUser.set(user);
@@ -57,6 +73,37 @@ export class AuthService {
     }
   }
 
+  async signInWithDev(role: UserRole = environment.auth.devLogin.defaultRole): Promise<void> {
+    if (!this.isDevLoginEnabled()) {
+      return;
+    }
+
+    const devLogin = environment.auth.devLogin;
+    this.isBusy.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const credential = await this.ensureDevUser(devLogin.email, devLogin.password);
+
+      if (devLogin.displayName && credential.user.displayName !== devLogin.displayName) {
+        await updateProfile(credential.user, { displayName: devLogin.displayName });
+      }
+
+      if (environment.useEmulators) {
+        const callable = httpsCallable<{ role: UserRole }, { role: UserRole }>(
+          this.functions,
+          'setDevRole',
+        );
+        await callable({ role });
+        await credential.user.getIdToken(true);
+      }
+    } catch (error) {
+      this.errorMessage.set(this.toDevFriendlyError(error));
+    } finally {
+      this.isBusy.set(false);
+    }
+  }
+
   async logout(): Promise<void> {
     this.isBusy.set(true);
     this.errorMessage.set(null);
@@ -78,6 +125,22 @@ export class AuthService {
     this.unsubscribeAuthListener();
   }
 
+  private async ensureDevUser(email: string, password: string) {
+    try {
+      return await signInWithEmailAndPassword(this.auth, email, password);
+    } catch (error) {
+      const authError = error as AuthError;
+      if (
+        authError.code === 'auth/user-not-found' ||
+        authError.code === 'auth/invalid-credential' ||
+        authError.code === 'auth/invalid-login-credentials'
+      ) {
+        return createUserWithEmailAndPassword(this.auth, email, password);
+      }
+      throw error;
+    }
+  }
+
   private toFriendlyError(error: unknown): string {
     const fallback = 'No se pudo completar el inicio de sesion con Microsoft.';
     if (!(error instanceof Error)) {
@@ -92,6 +155,19 @@ export class AuthService {
     }
     if (error.message.includes('auth/unauthorized-domain')) {
       return 'El dominio actual no esta autorizado en Firebase Authentication.';
+    }
+
+    return `${fallback} Detalle: ${error.message}`;
+  }
+
+  private toDevFriendlyError(error: unknown): string {
+    const fallback = 'No se pudo completar el inicio de sesion de desarrollo.';
+    if (!(error instanceof Error)) {
+      return fallback;
+    }
+
+    if (error.message.includes('auth/operation-not-allowed')) {
+      return 'Activa Email/Password en Firebase Authentication o usa los emuladores locales.';
     }
 
     return `${fallback} Detalle: ${error.message}`;

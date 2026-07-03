@@ -1,29 +1,135 @@
 <main class="login-page">
-  <section class="login-card">
-    <header class="login-card__header">
-      <span class="eyebrow">Wiloc Operaciones</span>
-      <h1 class="login-card__title font-mono">WiLauncher</h1>
-      <p class="login-card__subtitle">Acceso corporativo para operaciones de infraestructura cloud</p>
-    </header>
+  <aside class="login-hero" aria-hidden="true">
+    <img
+      class="login-hero__bg"
+      src="assets/images/turbine-portrait-bw.jpg"
+      alt=""
+      fetchpriority="high"
+    />
+    <div class="login-hero__scrim"></div>
 
-    <app-button
-      variant="primary"
-      [disabled]="authService.isBusy()"
-      [loading]="authService.isBusy()"
-      (clicked)="authService.signInWithMicrosoft()"
-    >
-      Entrar con Microsoft
-    </app-button>
+    <div class="login-hero__content">
+      <img
+        class="login-hero__logo"
+        src="assets/images/wiloc-logo-white.png"
+        alt="Wiloc"
+        width="120"
+        height="32"
+      />
 
-    @if (!authService.hasTenantConfigured()) {
-      <p class="login-card__warning">
-        Configuracion pendiente: define <code>auth.microsoftTenantId</code> en los entornos
-        cuando recibas los datos de Azure/Entra ID.
-      </p>
-    }
+      <div class="login-hero__copy">
+        <span class="login-hero__accent"></span>
+        <h1 class="login-hero__title">{{ 'login.heroTitle' | transloco }}</h1>
+        <p class="login-hero__subtitle">{{ 'login.heroSubtitle' | transloco }}</p>
+      </div>
 
-    @if (authService.errorMessage()) {
-      <p class="login-card__error">{{ authService.errorMessage() }}</p>
-    }
+      <p class="login-hero__footer">{{ 'login.heroFooter' | transloco }}</p>
+    </div>
+  </aside>
+
+  <section class="login-panel">
+    <div class="login-panel__body">
+      <header class="login-panel__header">
+        <span class="eyebrow">{{ 'login.eyebrow' | transloco }}</span>
+        <h2 class="login-panel__title font-mono">{{ 'login.title' | transloco }}</h2>
+        <p class="login-panel__lead">{{ 'login.lead' | transloco }}</p>
+      </header>
+
+      <button
+        type="button"
+        class="login-panel__microsoft"
+        [disabled]="authService.isBusy()"
+        (click)="authService.signInWithMicrosoft()"
+      >
+        @if (authService.isBusy()) {
+          <span class="login-panel__spinner" aria-hidden="true"></span>
+          <span>{{ 'login.connecting' | transloco }}</span>
+        } @else {
+          <svg class="login-panel__ms-icon" viewBox="0 0 21 21" aria-hidden="true">
+            <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+            <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+            <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+            <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+          </svg>
+          <span>{{ 'login.microsoft' | transloco }}</span>
+        }
+      </button>
+
+      @if (!authService.hasTenantConfigured()) {
+        <p class="login-panel__warning">{{ 'login.tenantWarning' | transloco }}</p>
+      }
+
+      @if (authService.errorMessage()) {
+        <p class="login-panel__error">{{ authService.errorMessage() }}</p>
+      }
+
+      @if (authService.isDevLoginEnabled()) {
+        <div class="login-panel__dev">
+          <p class="login-panel__dev-label">{{ 'login.devTitle' | transloco }}</p>
+          <p class="login-panel__dev-hint">{{ 'login.devHint' | transloco }}</p>
+
+          <label class="login-panel__dev-field">
+            <span>{{ 'login.devRole' | transloco }}</span>
+            <select [value]="devRole()" (change)="onDevRoleChange($event)">
+              @for (role of devRoles; track role) {
+                <option [value]="role">{{ role }}</option>
+              }
+            </select>
+          </label>
+
+          <button
+            type="button"
+            class="login-panel__dev-button"
+            [disabled]="authService.isBusy()"
+            (click)="signInWithDev()"
+          >
+            {{ 'login.devButton' | transloco }}
+          </button>
+        </div>
+      }
+
+      <div class="login-panel__divider" role="separator">
+        <span>{{ 'login.secureAccess' | transloco }}</span>
+      </div>
+
+      <div class="login-panel__security">
+        <span class="login-panel__security-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5" />
+            <path
+              d="M6 10.2l2.4 2.4L14 7.2"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <p>{{ 'login.security' | transloco }}</p>
+      </div>
+    </div>
+
+    <footer class="login-panel__footer">
+      @for (lang of localeService.availableLangs; track lang) {
+        <button
+          type="button"
+          class="login-panel__pill"
+          [class.login-panel__pill--active]="localeService.activeLang() === lang"
+          [attr.aria-label]="'login.langToggleAria' | transloco: { lang: localeService.langLabel(lang) }"
+          [attr.aria-current]="localeService.activeLang() === lang ? 'true' : null"
+          (click)="localeService.setLanguage(lang)"
+        >
+          {{ localeService.langLabel(lang) }}
+        </button>
+      }
+      <button
+        type="button"
+        class="login-panel__pill"
+        [attr.aria-label]="'common.themeToggleAria' | transloco: { theme: (themeToggleLabel() | transloco) }"
+        (click)="themeService.toggle()"
+      >
+        {{ themeToggleLabel() | transloco }}
+      </button>
+    </footer>
   </section>
 </main>

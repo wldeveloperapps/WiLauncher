@@ -1,9 +1,7 @@
 <section class="audit">
   <header class="audit__header">
-    <div>
-      <span class="eyebrow">Registro</span>
-      <h2 class="audit__title font-mono">// audit_log</h2>
-    </div>
+    <h1 class="audit__title">{{ 'audit.pageTitle' | transloco }}</h1>
+    <p class="audit__subtitle">{{ 'audit.pageSubtitle' | transloco }}</p>
   </header>
 
   @if (auditService.errorMessage()) {
@@ -11,31 +9,31 @@
   }
 
   @if (auditService.isLoading()) {
-    <p class="audit__status">Cargando auditoria...</p>
+    <p class="audit__status">{{ 'audit.loading' | transloco }}</p>
   } @else if (auditService.entries().length === 0) {
     <div class="audit__empty">
-      <p class="font-mono">// no_audit_entries</p>
-      <p>No hay registros de auditoria todavia.</p>
+      <p class="font-mono">{{ 'audit.emptyTitle' | transloco }}</p>
+      <p>{{ 'audit.emptyMessage' | transloco }}</p>
     </div>
   } @else {
     <div class="audit__table-wrapper">
       <table class="audit__table">
         <thead>
           <tr>
-            <th>Timestamp</th>
-            <th>Accion</th>
-            <th>Maquina</th>
-            <th>Proveedor</th>
-            <th>Entorno</th>
-            <th>Usuario</th>
-            <th>Rol</th>
+            <th>{{ 'audit.timestamp' | transloco }}</th>
+            <th>{{ 'audit.action' | transloco }}</th>
+            <th>{{ 'audit.machine' | transloco }}</th>
+            <th>{{ 'audit.provider' | transloco }}</th>
+            <th>{{ 'audit.environment' | transloco }}</th>
+            <th>{{ 'audit.user' | transloco }}</th>
+            <th>{{ 'audit.role' | transloco }}</th>
           </tr>
         </thead>
         <tbody>
           @for (entry of auditService.entries(); track entry.id) {
             <tr>
               <td class="font-mono">{{ formatTimestamp(entry.createdAt) }}</td>
-              <td>{{ auditActionLabel(entry.action) }}</td>
+              <td>{{ actionLabel(entry.action) | transloco }}</td>
               <td class="font-mono">{{ entry.machineId }}</td>
               <td>
                 <app-provider-glyph [provider]="entry.provider" />

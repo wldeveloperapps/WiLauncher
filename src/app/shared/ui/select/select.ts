@@ -1,14 +1,16 @@
 import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export interface SelectOption {
   value: string;
-  label: string;
+  label?: string;
+  labelKey?: string;
 }
 
 @Component({
   selector: 'app-select',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslocoPipe],
   template: `
     <label class="select-field">
       @if (label()) {
@@ -20,7 +22,13 @@ export interface SelectOption {
         (ngModelChange)="valueChange.emit($event)"
       >
         @for (option of options(); track option.value) {
-          <option [value]="option.value">{{ option.label }}</option>
+          <option [value]="option.value">
+            @if (option.labelKey) {
+              {{ option.labelKey | transloco }}
+            } @else {
+              {{ option.label }}
+            }
+          </option>
         }
       </select>
     </label>
@@ -49,6 +57,7 @@ export interface SelectOption {
       font-size: 14px;
       padding: 8px 12px;
       transition: border-color var(--motion-fast);
+      width: 100%;
     }
 
     .select-field__input:focus {
@@ -59,6 +68,7 @@ export interface SelectOption {
 })
 export class Select {
   readonly label = input<string>('');
+  readonly labelKey = input<string | undefined>(undefined);
   readonly value = input.required<string>();
   readonly options = input.required<SelectOption[]>();
   readonly valueChange = output<string>();

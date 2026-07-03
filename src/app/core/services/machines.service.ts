@@ -77,6 +77,12 @@ export class MachinesService implements OnDestroy {
     }
   }
 
+  refresh(): void {
+    if (this.authService.isAuthenticated()) {
+      this.startListening();
+    }
+  }
+
   async startMachine(machine: Machine): Promise<void> {
     await this.executeAction(machine, 'startMachine');
   }

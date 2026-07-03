@@ -1,43 +1,117 @@
 <section class="dashboard">
-  <header class="dashboard__header">
-    <div>
-      <span class="eyebrow">Inventario</span>
-      <h2 class="dashboard__title font-mono">// machines</h2>
+  <header class="dashboard__top">
+    <div class="dashboard__title-block">
+      <h1 class="dashboard__title">{{ 'dashboard.pageTitle' | transloco }}</h1>
+      <p class="dashboard__subtitle">{{ 'dashboard.pageSubtitle' | transloco }}</p>
+    </div>
+
+    <div class="dashboard__top-actions">
+      <label class="dashboard__search">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+        <input
+          type="search"
+          [value]="searchQuery()"
+          [placeholder]="'dashboard.searchPlaceholder' | transloco"
+          (input)="onSearchInput($event)"
+        />
+      </label>
+      <button
+        type="button"
+        class="dashboard__lang-pill"
+        [attr.aria-label]="'login.langToggleAria' | transloco: { lang: localeService.activeLang() === 'es' ? 'EN' : 'ES' }"
+        (click)="toggleLanguage()"
+      >
+        {{ localeService.langLabel(localeService.activeLang() === 'es' ? 'en' : 'es') }}
+      </button>
     </div>
   </header>
 
-  <div class="dashboard__metrics">
-    <app-metric-card label="Running" [value]="metrics().running" variant="running" />
-    <app-metric-card label="Stopped" [value]="metrics().stopped" variant="stopped" />
-    <app-metric-card label="Error" [value]="metrics().error" variant="error" />
-    <app-metric-card label="Total" [value]="metrics().total" variant="default" />
-  </div>
+  <div class="dashboard__toolbar">
+    <button
+      type="button"
+      class="dashboard__filters-toggle"
+      [attr.aria-expanded]="filtersOpen()"
+      (click)="toggleFilters()"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path
+          d="M3 5h14M6 10h8M9 15h2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        />
+      </svg>
+      {{ 'dashboard.filters' | transloco }}
+    </button>
 
-  <div class="dashboard__filters">
-    <app-select
-      label="Proveedor"
-      [value]="filterProvider()"
-      [options]="providerOptions"
-      (valueChange)="filterProvider.set($event)"
-    />
-    <app-select
-      label="Entorno"
-      [value]="filterEnvironment()"
-      [options]="environmentOptions"
-      (valueChange)="filterEnvironment.set($event)"
-    />
-    <app-select
-      label="Estado"
-      [value]="filterStatus()"
-      [options]="statusOptions"
-      (valueChange)="filterStatus.set($event)"
-    />
-    <app-input
-      label="Buscar"
-      [value]="searchQuery()"
-      placeholder="ID, nombre, region, IP..."
-      (valueChange)="searchQuery.set($event)"
-    />
+    <div
+      class="dashboard__toolbar-left"
+      [class.dashboard__toolbar-left--open]="filtersOpen()"
+    >
+      <div class="dashboard__provider-pills" role="tablist" [attr.aria-label]="'dashboard.provider' | transloco">
+        @for (pill of providerPills; track pill.value) {
+          <button
+            type="button"
+            class="dashboard__pill"
+            role="tab"
+            [class.dashboard__pill--active]="filterProvider() === pill.value"
+            [attr.aria-selected]="filterProvider() === pill.value"
+            (click)="filterProvider.set(pill.value)"
+          >
+            @if ('labelKey' in pill) {
+              {{ pill.labelKey | transloco }}
+            } @else {
+              {{ pill.label }}
+            }
+          </button>
+        }
+      </div>
+
+      <div class="dashboard__dropdowns">
+        <app-select
+          [value]="filterEnvironment()"
+          [options]="environmentOptions()"
+          (valueChange)="filterEnvironment.set($event)"
+        />
+        <app-select
+          [value]="filterStatus()"
+          [options]="statusOptions()"
+          (valueChange)="filterStatus.set($event)"
+        />
+        <app-select
+          [value]="groupBy()"
+          [options]="groupOptions()"
+          (valueChange)="onGroupChange($event)"
+        />
+      </div>
+    </div>
+
+    <div class="dashboard__toolbar-right">
+      <span class="dashboard__results font-mono">
+        {{ 'dashboard.results' | transloco: { filtered: filteredCount(), total: totalCount() } }}
+      </span>
+      <button
+        type="button"
+        class="dashboard__icon-btn"
+        [attr.aria-label]="'dashboard.refresh' | transloco"
+        (click)="refresh()"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path
+            d="M16 10a6 6 0 1 1-1.7-4.2M16 4v4h-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
 
   @if (machinesService.errorMessage()) {
@@ -45,77 +119,160 @@
   }
 
   @if (machinesService.isLoading()) {
-    <p class="dashboard__status">Cargando inventario...</p>
+    <p class="dashboard__status">{{ 'dashboard.loading' | transloco }}</p>
   } @else if (filteredMachines().length === 0) {
     <div class="dashboard__empty">
-      <p class="font-mono">// no_machines_found</p>
-      <p>No hay maquinas que coincidan con los filtros actuales.</p>
+      <p class="font-mono">{{ 'dashboard.emptyTitle' | transloco }}</p>
+      <p>{{ 'dashboard.emptyMessage' | transloco }}</p>
     </div>
   } @else {
-    <div class="dashboard__table-wrapper">
-      <table class="dashboard__table">
-        <thead>
-          <tr>
-            <th>Proveedor</th>
-            <th>Nombre / ID</th>
-            <th>Region</th>
-            <th>IP</th>
-            <th>Tipo</th>
-            <th>Entorno</th>
-            <th>Estado</th>
-            @if (sessionService.canOperate()) {
-              <th>Acciones</th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (machine of filteredMachines(); track machine.id) {
-            <tr>
-              <td>
-                <app-provider-glyph [provider]="machine.provider" />
-              </td>
-              <td>
-                <div class="dashboard__machine-name">{{ machine.name ?? machineId(machine) }}</div>
-                <div class="dashboard__machine-id font-mono">{{ machineId(machine) }}</div>
-              </td>
-              <td class="font-mono">{{ machine.region ?? '—' }}</td>
-              <td class="font-mono">{{ machine.ipAddress ?? '—' }}</td>
-              <td class="font-mono">{{ machine.instanceType ?? '—' }}</td>
-              <td>
-                <app-env-chip [environment]="machine.environment" />
-              </td>
-              <td>
-                <app-status-badge [status]="machine.status" />
-              </td>
-              @if (sessionService.canOperate()) {
-                <td class="dashboard__actions">
-                  @if (machine.status === 'stopped') {
-                    <app-button
-                      variant="primary"
-                      [disabled]="isActionDisabled(machine)"
-                      [loading]="machinesService.actionInProgress() === machineId(machine)"
-                      (clicked)="requestStart(machine)"
-                    >
-                      Arrancar
-                    </app-button>
+    @for (group of groupedMachines(); track group.key) {
+      <section class="dashboard__group">
+        @if (group.provider) {
+          <header class="dashboard__group-header">
+            <app-provider-glyph [provider]="group.provider" />
+            <span class="dashboard__group-title">{{ group.label }}</span>
+            <span class="dashboard__group-count font-mono">{{ group.machines.length }}</span>
+          </header>
+        }
+
+        <div class="dashboard__table-wrap dashboard__desktop-only">
+          <table class="dashboard__table">
+            <thead>
+              <tr>
+                <th>{{ 'dashboard.machine' | transloco }}</th>
+                <th>{{ 'dashboard.environment' | transloco }}</th>
+                <th>{{ 'dashboard.provider' | transloco }}</th>
+                <th>{{ 'dashboard.status' | transloco }}</th>
+                @if (sessionService.canOperate()) {
+                  <th>{{ 'dashboard.actions' | transloco }}</th>
+                }
+                <th class="dashboard__chevron-col" aria-hidden="true"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (machine of group.machines; track machine.id) {
+                <tr class="dashboard__row">
+                  <td class="dashboard__machine-cell">
+                    <div class="dashboard__machine-name">{{ machine.name ?? machineId(machine) }}</div>
+                    <div class="dashboard__machine-meta font-mono">{{ machineMeta(machine) }}</div>
+                  </td>
+                  <td>
+                    <app-env-chip [environment]="machine.environment" />
+                  </td>
+                  <td>
+                    <div class="dashboard__provider-cell">
+                      <app-provider-glyph [provider]="machine.provider" />
+                      <span>{{ providerLabel(machine.provider) }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <app-status-badge [status]="machine.status" />
+                  </td>
+                  @if (sessionService.canOperate()) {
+                    <td class="dashboard__actions">
+                      @if (machine.status === 'running') {
+                        <button
+                          type="button"
+                          class="dashboard__action dashboard__action--outline"
+                          [disabled]="isActionDisabled(machine)"
+                          (click)="requestStop(machine)"
+                        >
+                          <svg viewBox="0 0 16 16" aria-hidden="true">
+                            <rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" />
+                          </svg>
+                          {{ 'dashboard.stop' | transloco }}
+                        </button>
+                      }
+                      @if (machine.status === 'stopped') {
+                        <button
+                          type="button"
+                          class="dashboard__action dashboard__action--primary"
+                          [disabled]="isActionDisabled(machine)"
+                          (click)="requestStart(machine)"
+                        >
+                          <svg viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
+                          </svg>
+                          {{ 'dashboard.start' | transloco }}
+                        </button>
+                      }
+                    </td>
                   }
-                  @if (machine.status === 'running') {
-                    <app-button
-                      variant="outline"
-                      [disabled]="isActionDisabled(machine)"
-                      [loading]="machinesService.actionInProgress() === machineId(machine)"
-                      (clicked)="requestStop(machine)"
-                    >
-                      Apagar
-                    </app-button>
-                  }
-                </td>
+                  <td class="dashboard__chevron-col" aria-hidden="true">
+                    <svg class="dashboard__chevron" viewBox="0 0 16 16">
+                      <path
+                        d="M6 4l4 4-4 4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </td>
+                </tr>
               }
-            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="dashboard__cards dashboard__mobile-only">
+          @for (machine of group.machines; track machine.id) {
+            <article class="machine-card">
+              <div class="machine-card__header">
+                <div>
+                  <h3 class="machine-card__name">{{ machine.name ?? machineId(machine) }}</h3>
+                  <p class="machine-card__meta font-mono">{{ machineMeta(machine) }}</p>
+                </div>
+                <app-status-badge [status]="machine.status" />
+              </div>
+
+              <div class="machine-card__tags">
+                <app-env-chip [environment]="machine.environment" />
+                @if (!group.provider) {
+                  <div class="machine-card__provider">
+                    <app-provider-glyph [provider]="machine.provider" />
+                    <span>{{ providerLabel(machine.provider) }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (sessionService.canOperate()) {
+                <div class="machine-card__actions">
+                  @if (machine.status === 'running') {
+                    <button
+                      type="button"
+                      class="dashboard__action dashboard__action--outline dashboard__action--block"
+                      [disabled]="isActionDisabled(machine)"
+                      (click)="requestStop(machine)"
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" />
+                      </svg>
+                      {{ 'dashboard.stop' | transloco }}
+                    </button>
+                  }
+                  @if (machine.status === 'stopped') {
+                    <button
+                      type="button"
+                      class="dashboard__action dashboard__action--primary dashboard__action--block"
+                      [disabled]="isActionDisabled(machine)"
+                      (click)="requestStart(machine)"
+                    >
+                      <svg viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
+                      </svg>
+                      {{ 'dashboard.start' | transloco }}
+                    </button>
+                  }
+                </div>
+              }
+            </article>
           }
-        </tbody>
-      </table>
-    </div>
+        </div>
+      </section>
+    }
   }
 
   <app-confirm-dialog

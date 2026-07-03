@@ -1,0 +1,82 @@
+{
+  "common": {
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "themeToggleAria": "Switch to {{theme}} theme"
+  },
+  "login": {
+    "heroTitle": "Multi-cloud operations console.",
+    "heroSubtitle": "Start and stop your AWS, Azure, GCP and OCI infrastructure from a single audited interface.",
+    "heroFooter": "wiloc.com · IT Operations · restricted access",
+    "eyebrow": "Internal tool",
+    "title": "WiLauncher",
+    "lead": "Sign in with your corporate account to access the console.",
+    "connecting": "Connecting...",
+    "microsoft": "Continue with Microsoft",
+    "tenantWarning": "Pending configuration: set auth.microsoftTenantId in environments when you receive Azure/Entra ID details.",
+    "secureAccess": "secure access",
+    "security": "WiLauncher never displays or stores cloud credentials. It only orchestrates actions through secure federated connections.",
+    "langToggleAria": "Switch language to {{lang}}",
+    "devTitle": "Development mode",
+    "devHint": "Sign in with a Firebase test user (Email/Password). The selected role applies in the UI.",
+    "devRole": "Test role",
+    "devButton": "Sign in (development)"
+  },
+  "layout": {
+    "home": "WiLauncher home",
+    "navInventory": "Inventory",
+    "navAudit": "Audit",
+    "logout": "Sign out"
+  },
+  "dashboard": {
+    "pageTitle": "Machine inventory",
+    "pageSubtitle": "Orchestrated VMs · multi-cloud",
+    "searchPlaceholder": "Search name, ID, region...",
+    "loading": "Loading inventory...",
+    "emptyTitle": "// no_machines_found",
+    "emptyMessage": "No machines match the current filters.",
+    "provider": "Provider",
+    "environment": "Environment",
+    "status": "Status",
+    "machine": "Machine",
+    "actions": "Actions",
+    "start": "Start",
+    "stop": "Stop",
+    "running": "Running",
+    "stopped": "Stopped",
+    "error": "Error",
+    "all": "All",
+    "allEnvironments": "All environments",
+    "allStatuses": "All statuses",
+    "groupProvider": "Group: Provider",
+    "groupNone": "No grouping",
+    "groupBy": "Group by",
+    "results": "{{filtered}} / {{total}} results",
+    "refresh": "Refresh inventory",
+    "filters": "Filters"
+  },
+  "confirm": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "confirmStart": "Confirm start",
+    "confirmStop": "Confirm stop",
+    "messageStart": "You are about to start machine {{id}} in {{env}} environment.",
+    "messageStop": "You are about to stop machine {{id}} in {{env}} environment."
+  },
+  "audit": {
+    "pageTitle": "Audit log",
+    "pageSubtitle": "Operations history · multi-cloud",
+    "loading": "Loading audit log...",
+    "emptyTitle": "// no_audit_entries",
+    "emptyMessage": "No audit entries yet.",
+    "timestamp": "Timestamp",
+    "action": "Action",
+    "machine": "Machine",
+    "provider": "Provider",
+    "environment": "Environment",
+    "user": "User",
+    "role": "Role",
+    "startAction": "Start",
+    "stopAction": "Stop"
+  }
+}

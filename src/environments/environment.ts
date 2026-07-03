@@ -1,4 +1,6 @@
-export const environment = {
+import { Environment } from './environment.model';
+
+export const environment: Environment = {
   production: false,
   firebase: {
     apiKey: 'AIzaSyA19nFVsYUGDutcz17LeJsURQVoM48AOj0',
@@ -9,8 +11,23 @@ export const environment = {
     appId: '1:775063189008:web:e4e4515dc9bd569209fc95',
     measurementId: 'G-198LTZWTTC',
   },
+  useEmulators: false,
+  useFirestoreEmulator: false,
+  emulators: {
+    auth: 'http://127.0.0.1:9099',
+    firestoreHost: '127.0.0.1',
+    firestorePort: 8080,
+    functionsHost: '127.0.0.1',
+    functionsPort: 5001,
+  },
   auth: {
-    // Completar con el tenant de Entra ID cuando el equipo de IT lo comparta.
     microsoftTenantId: '',
+    devLogin: {
+      enabled: true,
+      email: 'dev@wiloc.local',
+      password: 'dev-wilauncher',
+      displayName: 'Dev Operator',
+      defaultRole: 'operator',
+    },
   },
 };
