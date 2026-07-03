@@ -152,7 +152,11 @@
             </thead>
             <tbody>
               @for (machine of group.machines; track machine.id) {
-                <tr class="dashboard__row">
+                <tr
+                  class="dashboard__row"
+                  [class.dashboard__row--selected]="isSelected(machine)"
+                  (click)="openDetail(machine)"
+                >
                   <td class="dashboard__machine-cell">
                     <div class="dashboard__machine-name">{{ machine.name ?? machineId(machine) }}</div>
                     <div class="dashboard__machine-meta font-mono">{{ machineMeta(machine) }}</div>
@@ -176,7 +180,7 @@
                           type="button"
                           class="dashboard__action dashboard__action--outline"
                           [disabled]="isActionDisabled(machine)"
-                          (click)="requestStop(machine)"
+                          (click)="requestStop(machine, $event)"
                         >
                           <svg viewBox="0 0 16 16" aria-hidden="true">
                             <rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" />
@@ -189,7 +193,7 @@
                           type="button"
                           class="dashboard__action dashboard__action--primary"
                           [disabled]="isActionDisabled(machine)"
-                          (click)="requestStart(machine)"
+                          (click)="requestStart(machine, $event)"
                         >
                           <svg viewBox="0 0 16 16" aria-hidden="true">
                             <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
@@ -219,7 +223,7 @@
 
         <div class="dashboard__cards dashboard__mobile-only">
           @for (machine of group.machines; track machine.id) {
-            <article class="machine-card">
+            <article class="machine-card" (click)="openDetail(machine)">
               <div class="machine-card__header">
                 <div>
                   <h3 class="machine-card__name">{{ machine.name ?? machineId(machine) }}</h3>
@@ -245,7 +249,7 @@
                       type="button"
                       class="dashboard__action dashboard__action--outline dashboard__action--block"
                       [disabled]="isActionDisabled(machine)"
-                      (click)="requestStop(machine)"
+                      (click)="requestStop(machine, $event)"
                     >
                       <svg viewBox="0 0 16 16" aria-hidden="true">
                         <rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" />
@@ -258,7 +262,7 @@
                       type="button"
                       class="dashboard__action dashboard__action--primary dashboard__action--block"
                       [disabled]="isActionDisabled(machine)"
-                      (click)="requestStart(machine)"
+                      (click)="requestStart(machine, $event)"
                     >
                       <svg viewBox="0 0 16 16" aria-hidden="true">
                         <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
@@ -275,12 +279,25 @@
     }
   }
 
+  <app-machine-detail-drawer
+    [open]="selectedMachine() !== null"
+    [machine]="selectedMachineSnapshot()"
+    [canOperate]="sessionService.canOperate()"
+    [actionDisabled]="selectedMachineSnapshot() ? isActionDisabled(selectedMachineSnapshot()!) : false"
+    (closed)="closeDetail()"
+    (startRequested)="requestStart($event)"
+    (stopRequested)="requestStop($event)"
+  />
+
   <app-confirm-dialog
     [open]="confirmOpen()"
     [title]="confirmTitle()"
     [message]="confirmMessage()"
     [confirmLabel]="confirmLabel()"
     [danger]="isProdConfirm()"
+    [production]="isProdConfirm()"
+    [action]="confirmAction()"
+    [confirmationTarget]="confirmationTarget()"
     [loading]="confirmLoading()"
     (confirmed)="onConfirm()"
     (cancelled)="closeConfirm()"

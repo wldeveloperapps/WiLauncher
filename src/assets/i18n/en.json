@@ -53,7 +53,17 @@
     "groupBy": "Group by",
     "results": "{{filtered}} / {{total}} results",
     "refresh": "Refresh inventory",
-    "filters": "Filters"
+    "filters": "Filters",
+    "closeDetail": "Close machine details",
+    "region": "Region",
+    "instanceType": "Type",
+    "cpu": "CPU",
+    "privateIp": "Private IP",
+    "recentActivity": "Recent activity",
+    "noActivity": "No activity recorded.",
+    "showMoreActivity": "Show {{count}} more",
+    "showLessActivity": "Show less",
+    "yesterday": "Yesterday"
   },
   "confirm": {
     "cancel": "Cancel",
@@ -61,7 +71,17 @@
     "confirmStart": "Confirm start",
     "confirmStop": "Confirm stop",
     "messageStart": "You are about to start machine {{id}} in {{env}} environment.",
-    "messageStop": "You are about to stop machine {{id}} in {{env}} environment."
+    "messageStop": "You are about to stop machine {{id}} in {{env}} environment.",
+    "prodTitle": "PRODUCTION action",
+    "prodMessageStart": "A start order will be sent to {{name}} ({{id}}) in the {{env}} environment.",
+    "prodMessageStop": "A shutdown order will be sent to {{name}} ({{id}}) in the {{env}} environment.",
+    "prodWarningStart": "This machine is in PRODUCTION. Starting it may affect live service. Type the name to confirm.",
+    "prodWarningStop": "This machine is in PRODUCTION. Shutting it down may interrupt live service. Type the name to confirm.",
+    "prodInputLabel": "Confirmation",
+    "prodInputPlaceholder": "Type the machine name",
+    "prodConfirmStart": "Start production",
+    "prodConfirmStop": "Shut down production",
+    "auditNote": "This action will be recorded in the audit log with your user and timestamp."
   },
   "audit": {
     "pageTitle": "Audit log",

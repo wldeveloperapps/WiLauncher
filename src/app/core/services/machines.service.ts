@@ -2,7 +2,9 @@ import { effect, inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { collection, Firestore, onSnapshot, Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
+import { MOCK_MACHINES } from '../data/mock-machines';
 import { Machine, MachineStatus, Provider } from '../models/machine.model';
+import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
 interface MachineActionInput {
@@ -24,6 +26,7 @@ export class MachinesService implements OnDestroy {
   private readonly firestore = inject(Firestore);
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
+  private readonly useMockMachines = environment.useMockMachines;
 
   readonly machines = signal<Machine[]>([]);
   readonly isLoading = signal(true);
@@ -31,6 +34,7 @@ export class MachinesService implements OnDestroy {
   readonly actionInProgress = signal<string | null>(null);
 
   private unsubscribe: (() => void) | null = null;
+  private mockTransitionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
@@ -47,12 +51,22 @@ export class MachinesService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopListening();
+    this.clearMockTransitionTimer();
   }
 
   startListening(): void {
     this.stopListening();
     this.isLoading.set(true);
     this.errorMessage.set(null);
+
+    if (this.useMockMachines) {
+      const machines = [...MOCK_MACHINES].sort((a, b) =>
+        this.machineSortKey(a).localeCompare(this.machineSortKey(b)),
+      );
+      this.machines.set(machines);
+      this.isLoading.set(false);
+      return;
+    }
 
     this.unsubscribe = onSnapshot(
       collection(this.firestore, 'machines'),
@@ -75,6 +89,7 @@ export class MachinesService implements OnDestroy {
       this.unsubscribe();
       this.unsubscribe = null;
     }
+    this.clearMockTransitionTimer();
   }
 
   refresh(): void {
@@ -84,11 +99,65 @@ export class MachinesService implements OnDestroy {
   }
 
   async startMachine(machine: Machine): Promise<void> {
+    if (this.useMockMachines) {
+      await this.executeMockAction(machine, 'start');
+      return;
+    }
     await this.executeAction(machine, 'startMachine');
   }
 
   async stopMachine(machine: Machine): Promise<void> {
+    if (this.useMockMachines) {
+      await this.executeMockAction(machine, 'stop');
+      return;
+    }
     await this.executeAction(machine, 'stopMachine');
+  }
+
+  private async executeMockAction(machine: Machine, action: 'start' | 'stop'): Promise<void> {
+    const machineId = machine.machineId ?? machine.id;
+    this.actionInProgress.set(machineId);
+    this.errorMessage.set(null);
+    this.clearMockTransitionTimer();
+
+    const transitionStatus: MachineStatus = action === 'start' ? 'starting' : 'stopping';
+    const finalStatus: MachineStatus = action === 'start' ? 'running' : 'stopped';
+
+    this.updateMockMachine(machineId, {
+      status: transitionStatus,
+      updatedAt: new Date(),
+      updatedBy: this.authService.currentUser()?.email ?? 'dev@wiloc.local',
+    });
+
+    await new Promise<void>((resolve) => {
+      this.mockTransitionTimer = setTimeout(() => {
+        this.updateMockMachine(machineId, {
+          status: finalStatus,
+          updatedAt: new Date(),
+        });
+        this.mockTransitionTimer = null;
+        resolve();
+      }, 1500);
+    });
+
+    this.actionInProgress.set(null);
+  }
+
+  private updateMockMachine(machineId: string, patch: Partial<Machine>): void {
+    this.machines.update((machines) =>
+      machines.map((machine) => {
+        const id = machine.machineId ?? machine.id;
+        if (id !== machineId) return machine;
+        return { ...machine, ...patch };
+      }),
+    );
+  }
+
+  private clearMockTransitionTimer(): void {
+    if (this.mockTransitionTimer) {
+      clearTimeout(this.mockTransitionTimer);
+      this.mockTransitionTimer = null;
+    }
   }
 
   private async executeAction(

@@ -53,7 +53,17 @@
     "groupBy": "Agrupar",
     "results": "{{filtered}} / {{total}} resultados",
     "refresh": "Actualizar inventario",
-    "filters": "Filtros"
+    "filters": "Filtros",
+    "closeDetail": "Cerrar detalle de máquina",
+    "region": "Región",
+    "instanceType": "Tipo",
+    "cpu": "CPU",
+    "privateIp": "IP privada",
+    "recentActivity": "Actividad reciente",
+    "noActivity": "Sin actividad registrada.",
+    "showMoreActivity": "Ver {{count}} más",
+    "showLessActivity": "Ver menos",
+    "yesterday": "Ayer"
   },
   "confirm": {
     "cancel": "Cancelar",
@@ -61,7 +71,17 @@
     "confirmStart": "Confirmar arranque",
     "confirmStop": "Confirmar apagado",
     "messageStart": "Vas a arrancar la máquina {{id}} en entorno {{env}}.",
-    "messageStop": "Vas a apagar la máquina {{id}} en entorno {{env}}."
+    "messageStop": "Vas a apagar la máquina {{id}} en entorno {{env}}.",
+    "prodTitle": "Acción en PRODUCCIÓN",
+    "prodMessageStart": "Se enviará una orden de arranque a {{name}} ({{id}}) en el entorno {{env}}.",
+    "prodMessageStop": "Se enviará una orden de apagado a {{name}} ({{id}}) en el entorno {{env}}.",
+    "prodWarningStart": "Esta máquina está en PRODUCCIÓN. Un arranque puede afectar servicio en vivo. Escribe el nombre para confirmar.",
+    "prodWarningStop": "Esta máquina está en PRODUCCIÓN. Un apagado puede interrumpir servicio en vivo. Escribe el nombre para confirmar.",
+    "prodInputLabel": "Confirmación",
+    "prodInputPlaceholder": "Escribe el nombre de la máquina",
+    "prodConfirmStart": "Arrancar producción",
+    "prodConfirmStop": "Apagar producción",
+    "auditNote": "Esta acción quedará registrada en auditoría con tu usuario y hora."
   },
   "audit": {
     "pageTitle": "Registro de auditoría",

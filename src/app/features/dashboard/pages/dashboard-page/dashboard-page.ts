@@ -11,6 +11,7 @@ import {
 import { LocaleService } from '../../../../core/services/locale.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { MachinesService } from '../../../../core/services/machines.service';
+import { MachineDetailDrawer } from '../../components/machine-detail-drawer/machine-detail-drawer';
 import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
 import { EnvChip } from '../../../../shared/ui/env-chip/env-chip';
 import { ProviderGlyph } from '../../../../shared/ui/provider-glyph/provider-glyph';
@@ -34,6 +35,7 @@ interface MachineGroup {
   imports: [
     ConfirmDialog,
     EnvChip,
+    MachineDetailDrawer,
     ProviderGlyph,
     Select,
     StatusBadge,
@@ -59,6 +61,7 @@ export class DashboardPage {
   readonly confirmOpen = signal(false);
   readonly confirmLoading = signal(false);
   readonly filtersOpen = signal(false);
+  readonly selectedMachine = signal<Machine | null>(null);
 
   readonly providerPills = [
     { value: 'all', labelKey: 'dashboard.all' },
@@ -197,11 +200,33 @@ export class DashboardPage {
     this.machinesService.refresh();
   }
 
-  protected requestStart(machine: Machine): void {
+  protected openDetail(machine: Machine): void {
+    this.selectedMachine.set(machine);
+  }
+
+  protected closeDetail(): void {
+    this.selectedMachine.set(null);
+  }
+
+  protected isSelected(machine: Machine): boolean {
+    const selected = this.selectedMachine();
+    if (!selected) return false;
+    return this.machineId(selected) === this.machineId(machine);
+  }
+
+  protected selectedMachineSnapshot(): Machine | null {
+    const selectedId = this.selectedMachine()?.id;
+    if (!selectedId) return null;
+    return this.machinesService.machines().find((machine) => machine.id === selectedId) ?? this.selectedMachine();
+  }
+
+  protected requestStart(machine: Machine, event?: Event): void {
+    event?.stopPropagation();
     this.openConfirm({ machine, action: 'start' });
   }
 
-  protected requestStop(machine: Machine): void {
+  protected requestStop(machine: Machine, event?: Event): void {
+    event?.stopPropagation();
     this.openConfirm({ machine, action: 'stop' });
   }
 
@@ -213,6 +238,9 @@ export class DashboardPage {
   protected confirmTitle(): string {
     const pending = this.pendingAction();
     if (!pending) return this.transloco.translate('confirm.confirm');
+    if (this.isProdConfirm()) {
+      return this.transloco.translate('confirm.prodTitle');
+    }
     return pending.action === 'start'
       ? this.transloco.translate('confirm.confirmStart')
       : this.transloco.translate('confirm.confirmStop');
@@ -221,11 +249,31 @@ export class DashboardPage {
   protected confirmMessage(): string {
     const pending = this.pendingAction();
     if (!pending) return '';
-    const id = this.machineId(pending.machine);
-    const params = { id, env: pending.machine.environment };
+
+    const machine = pending.machine;
+    const name = this.confirmationTarget(machine);
+    const id = this.machineId(machine);
+    const params = { name, id, env: machine.environment };
+
+    if (this.isProdConfirm()) {
+      return pending.action === 'start'
+        ? this.transloco.translate('confirm.prodMessageStart', params)
+        : this.transloco.translate('confirm.prodMessageStop', params);
+    }
+
     return pending.action === 'start'
-      ? this.transloco.translate('confirm.messageStart', params)
-      : this.transloco.translate('confirm.messageStop', params);
+      ? this.transloco.translate('confirm.messageStart', { id, env: machine.environment })
+      : this.transloco.translate('confirm.messageStop', { id, env: machine.environment });
+  }
+
+  protected confirmationTarget(machine?: Machine): string {
+    const target = machine ?? this.pendingAction()?.machine;
+    if (!target) return '';
+    return target.name ?? this.machineId(target);
+  }
+
+  protected confirmAction(): 'start' | 'stop' | null {
+    return this.pendingAction()?.action ?? null;
   }
 
   protected isProdConfirm(): boolean {
@@ -235,6 +283,11 @@ export class DashboardPage {
   protected confirmLabel(): string {
     const pending = this.pendingAction();
     if (!pending) return this.transloco.translate('confirm.confirm');
+    if (this.isProdConfirm()) {
+      return pending.action === 'start'
+        ? this.transloco.translate('confirm.prodConfirmStart')
+        : this.transloco.translate('confirm.prodConfirmStop');
+    }
     return pending.action === 'start'
       ? this.transloco.translate('dashboard.start')
       : this.transloco.translate('dashboard.stop');

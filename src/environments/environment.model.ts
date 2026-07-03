@@ -10,6 +10,7 @@ export interface DevLoginConfig {
 
 export interface Environment {
   production: boolean;
+  useMockMachines: boolean;
   firebase: {
     apiKey: string;
     authDomain: string;

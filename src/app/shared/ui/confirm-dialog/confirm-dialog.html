@@ -1,0 +1,90 @@
+@if (open()) {
+  <div
+    class="dialog-backdrop"
+    (click)="cancelled.emit()"
+    (keydown.escape)="cancelled.emit()"
+  >
+    <div
+      class="dialog"
+      [class.dialog--production]="production()"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'confirm-dialog-title'"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="dialog__header">
+        @if (production()) {
+          <svg class="dialog__warning-icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M10 2.5 17.5 16H2.5L10 2.5Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linejoin="round"
+            />
+            <path d="M10 8v4M10 14.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        }
+        <h2 id="confirm-dialog-title" class="dialog__title font-mono">{{ title() }}</h2>
+      </header>
+
+      <p class="dialog__message">{{ message() }}</p>
+
+      @if (production()) {
+        <div class="dialog__prod-warning">
+          <div class="dialog__prod-warning-head">
+            <app-env-chip environment="PROD" />
+          </div>
+          <p class="dialog__prod-warning-text">
+            @if (action() === 'start') {
+              {{ 'confirm.prodWarningStart' | transloco }}
+            } @else {
+              {{ 'confirm.prodWarningStop' | transloco }}
+            }
+          </p>
+        </div>
+
+        <label class="dialog__confirm-field">
+          <span class="dialog__confirm-label">{{ 'confirm.prodInputLabel' | transloco }}</span>
+          <input
+            type="text"
+            class="dialog__confirm-input font-mono"
+            [value]="confirmationInput()"
+            [placeholder]="'confirm.prodInputPlaceholder' | transloco"
+            [attr.aria-label]="'confirm.prodInputPlaceholder' | transloco"
+            autocomplete="off"
+            spellcheck="false"
+            (input)="onConfirmationInput($event)"
+          />
+        </label>
+
+        <p class="dialog__audit-note">{{ 'confirm.auditNote' | transloco }}</p>
+      }
+
+      <div class="dialog__actions">
+        <app-button variant="outline" (clicked)="cancelled.emit()">
+          {{ 'confirm.cancel' | transloco }}
+        </app-button>
+        <app-button
+          [variant]="danger() ? 'danger' : 'primary'"
+          [loading]="loading()"
+          [disabled]="!canConfirm()"
+          (clicked)="confirmed.emit()"
+        >
+          @if (production()) {
+            <svg class="dialog__btn-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path
+                d="M8 1.5 14.5 13H1.5L8 1.5Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.25"
+                stroke-linejoin="round"
+              />
+            </svg>
+          }
+          {{ confirmLabel() }}
+        </app-button>
+      </div>
+    </div>
+  </div>
+}

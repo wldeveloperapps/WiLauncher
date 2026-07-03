@@ -270,12 +270,20 @@
   vertical-align: middle;
 }
 
+.dashboard__row {
+  cursor: pointer;
+}
+
 .dashboard__row:last-child td {
   border-bottom: 0;
 }
 
 .dashboard__row:hover {
   background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+}
+
+.dashboard__row--selected {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 .dashboard__machine-name {
@@ -379,6 +387,7 @@
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);

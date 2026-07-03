@@ -16,6 +16,7 @@ export interface Machine {
   region?: string;
   ipAddress?: string;
   instanceType?: string;
+  cpuUsage?: number;
   updatedAt?: Date | null;
   updatedBy?: string;
 }

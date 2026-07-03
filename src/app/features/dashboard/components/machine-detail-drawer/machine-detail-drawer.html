@@ -1,0 +1,154 @@
+@if (open() && machine(); as selected) {
+  <div class="drawer-backdrop" (click)="onClose()" (keydown.escape)="onClose()">
+    <aside
+      class="drawer"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="machineName(selected)"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="drawer__header">
+        <div class="drawer__identity">
+          <app-provider-glyph [provider]="selected.provider" />
+          <div>
+            <h2 class="drawer__name">{{ machineName(selected) }}</h2>
+            <p class="drawer__id font-mono">{{ machineId(selected) }}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="drawer__close"
+          [attr.aria-label]="'dashboard.closeDetail' | transloco"
+          (click)="onClose()"
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M5 5l10 10M15 5 5 15"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <div class="drawer__status">
+        <app-status-badge [status]="selected.status" />
+      </div>
+
+      <dl class="drawer__specs">
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.provider' | transloco }}</dt>
+          <dd>{{ providerLabel(selected.provider) }}</dd>
+        </div>
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.environment' | transloco }}</dt>
+          <dd><app-env-chip [environment]="selected.environment" /></dd>
+        </div>
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.region' | transloco }}</dt>
+          <dd class="font-mono">{{ selected.region ?? '—' }}</dd>
+        </div>
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.instanceType' | transloco }}</dt>
+          <dd class="font-mono">{{ selected.instanceType ?? '—' }}</dd>
+        </div>
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.cpu' | transloco }}</dt>
+          <dd class="font-mono">
+            @if (selected.cpuUsage !== undefined) {
+              {{ selected.cpuUsage }}%
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div class="drawer__spec">
+          <dt>{{ 'dashboard.privateIp' | transloco }}</dt>
+          <dd class="font-mono">{{ selected.ipAddress ?? '—' }}</dd>
+        </div>
+      </dl>
+
+      <section class="drawer__activity">
+        <button
+          type="button"
+          class="drawer__activity-toggle"
+          [attr.aria-expanded]="logsExpanded()"
+          [attr.aria-controls]="'machine-activity-list'"
+          (click)="toggleLogs()"
+        >
+          <span class="drawer__activity-title">{{ 'dashboard.recentActivity' | transloco }}</span>
+          <svg
+            class="drawer__activity-chevron"
+            [class.drawer__activity-chevron--expanded]="logsExpanded()"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+          >
+            <path
+              d="M4 6l4 4 4-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+
+        <ul id="machine-activity-list" class="drawer__activity-list">
+          @for (log of visibleLogs(); track log.id) {
+            <li class="drawer__activity-item">
+              <span class="drawer__activity-time font-mono">{{ formatLogTime(log.timestamp) }}</span>
+              <span class="drawer__activity-action font-mono">{{ log.action }}</span>
+              <span class="drawer__activity-actor">{{ log.actor }}</span>
+            </li>
+          } @empty {
+            <li class="drawer__activity-empty">{{ 'dashboard.noActivity' | transloco }}</li>
+          }
+        </ul>
+
+        @if (hasMoreLogs()) {
+          <button type="button" class="drawer__activity-more" (click)="toggleLogs()">
+            @if (logsExpanded()) {
+              {{ 'dashboard.showLessActivity' | transloco }}
+            } @else {
+              {{ 'dashboard.showMoreActivity' | transloco: { count: hiddenLogCount() } }}
+            }
+          </button>
+        }
+      </section>
+
+      @if (canOperate()) {
+        <footer class="drawer__footer">
+          @if (selected.status === 'running') {
+            <button
+              type="button"
+              class="drawer__action drawer__action--outline"
+              [disabled]="actionDisabled() || isTransitioning(selected.status)"
+              (click)="onStop(selected, $event)"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor" />
+              </svg>
+              {{ 'dashboard.stop' | transloco }}
+            </button>
+          }
+          @if (selected.status === 'stopped') {
+            <button
+              type="button"
+              class="drawer__action drawer__action--primary"
+              [disabled]="actionDisabled() || isTransitioning(selected.status)"
+              (click)="onStart(selected, $event)"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M5 3.5v9l7-4.5-7-4.5Z" fill="currentColor" />
+              </svg>
+              {{ 'dashboard.start' | transloco }}
+            </button>
+          }
+        </footer>
+      }
+    </aside>
+  </div>
+}

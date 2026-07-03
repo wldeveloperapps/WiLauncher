@@ -2,6 +2,7 @@ import { Environment } from './environment.model';
 
 export const environment: Environment = {
   production: true,
+  useMockMachines: false,
   firebase: {
     apiKey: 'AIzaSyA19nFVsYUGDutcz17LeJsURQVoM48AOj0',
     authDomain: 'wilauncher.firebaseapp.com',
