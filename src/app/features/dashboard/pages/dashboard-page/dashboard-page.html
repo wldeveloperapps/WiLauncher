@@ -97,7 +97,10 @@
       <button
         type="button"
         class="dashboard__icon-btn"
+        [class.dashboard__icon-btn--spinning]="machinesService.isRefreshing()"
+        [disabled]="machinesService.isRefreshing()"
         [attr.aria-label]="'dashboard.refresh' | transloco"
+        [attr.aria-busy]="machinesService.isRefreshing()"
         (click)="refresh()"
       >
         <svg viewBox="0 0 20 20" aria-hidden="true">

@@ -183,9 +183,34 @@
     width: 16px;
   }
 
-  &:hover {
+  &:hover:not(:disabled) {
     border-color: var(--text-secondary);
     color: var(--text-primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &--spinning svg {
+    animation: dashboard-refresh-spin 800ms linear infinite;
+  }
+}
+
+@keyframes dashboard-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard__icon-btn--spinning svg {
+    animation: none;
   }
 }
 

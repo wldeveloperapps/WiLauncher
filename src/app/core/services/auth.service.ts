@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import {
   AuthError,
@@ -21,6 +22,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
   private readonly functions = inject(Functions);
   private resolveInitialized!: () => void;
   private readonly initializedPromise = new Promise<void>((resolve) => {
@@ -110,6 +112,7 @@ export class AuthService {
 
     try {
       await signOut(this.auth);
+      await this.router.navigateByUrl('/login', { replaceUrl: true });
     } catch (error) {
       this.errorMessage.set(this.toFriendlyError(error));
     } finally {

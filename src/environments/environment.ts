@@ -22,9 +22,9 @@ export const environment: Environment = {
     functionsPort: 5001,
   },
   auth: {
-    microsoftTenantId: '',
+    microsoftTenantId: '38c864ec-1b76-42bc-bd0f-f8ea1efe10e0',
     devLogin: {
-      enabled: true,
+      enabled: false,
       email: 'dev@wiloc.local',
       password: 'dev-wilauncher',
       displayName: 'Dev Operator',

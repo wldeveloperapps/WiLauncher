@@ -4,8 +4,10 @@ import { Functions, httpsCallable } from '@angular/fire/functions';
 
 import { MOCK_MACHINES } from '../data/mock-machines';
 import { Machine, MachineStatus, Provider } from '../models/machine.model';
+import { canOperate } from '../models/role.model';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { SessionService } from './session.service';
 
 interface MachineActionInput {
   machineId: string;
@@ -19,6 +21,12 @@ interface MachineActionResponse {
   message: string;
 }
 
+interface AzureSyncResult {
+  subscriptions: number;
+  machines: number;
+  syncedAt: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -26,10 +34,12 @@ export class MachinesService implements OnDestroy {
   private readonly firestore = inject(Firestore);
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
+  private readonly sessionService = inject(SessionService);
   private readonly useMockMachines = environment.useMockMachines;
 
   readonly machines = signal<Machine[]>([]);
   readonly isLoading = signal(true);
+  readonly isRefreshing = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly actionInProgress = signal<string | null>(null);
 
@@ -92,9 +102,34 @@ export class MachinesService implements OnDestroy {
     this.clearMockTransitionTimer();
   }
 
-  refresh(): void {
-    if (this.authService.isAuthenticated()) {
+  async refresh(): Promise<void> {
+    if (!this.authService.isAuthenticated()) {
+      return;
+    }
+
+    if (this.useMockMachines) {
       this.startListening();
+      return;
+    }
+
+    if (!canOperate(this.sessionService.role())) {
+      this.startListening();
+      return;
+    }
+
+    this.isRefreshing.set(true);
+    this.errorMessage.set(null);
+
+    try {
+      const callable = httpsCallable<void, AzureSyncResult>(
+        this.functions,
+        'syncAzureMachines',
+      );
+      await callable();
+    } catch (error) {
+      this.errorMessage.set(this.toRefreshError(error));
+    } finally {
+      this.isRefreshing.set(false);
     }
   }
 
@@ -164,8 +199,8 @@ export class MachinesService implements OnDestroy {
     machine: Machine,
     functionName: 'startMachine' | 'stopMachine',
   ): Promise<void> {
-    const machineId = machine.machineId ?? machine.id;
-    this.actionInProgress.set(machineId);
+    const actionKey = machine.machineId ?? machine.id;
+    this.actionInProgress.set(actionKey);
     this.errorMessage.set(null);
 
     try {
@@ -174,7 +209,7 @@ export class MachinesService implements OnDestroy {
         functionName,
       );
       await callable({
-        machineId,
+        machineId: machine.id,
         provider: machine.provider,
         environment: machine.environment,
       });
@@ -214,6 +249,19 @@ export class MachinesService implements OnDestroy {
 
   private machineSortKey(machine: Machine): string {
     return machine.name ?? machine.machineId ?? machine.id;
+  }
+
+  private toRefreshError(error: unknown): string {
+    if (error instanceof Error) {
+      if (error.message.includes('permission-denied')) {
+        return 'No tienes permisos para actualizar el inventario.';
+      }
+      if (error.message.includes('failed-precondition')) {
+        return 'La sincronizacion con Azure no esta activa todavia.';
+      }
+      return `No se pudo actualizar el inventario. ${error.message}`;
+    }
+    return 'No se pudo actualizar el inventario.';
   }
 
   private toFriendlyError(error: unknown): string {

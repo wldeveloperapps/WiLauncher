@@ -196,8 +196,8 @@ export class DashboardPage {
     this.localeService.toggleLanguage();
   }
 
-  protected refresh(): void {
-    this.machinesService.refresh();
+  protected async refresh(): Promise<void> {
+    await this.machinesService.refresh();
   }
 
   protected openDetail(machine: Machine): void {

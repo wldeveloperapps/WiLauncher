@@ -15,6 +15,8 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@azure/arm-compute": "^24.1.0",
+    "@azure/identity": "^4.13.1",
     "firebase-admin": "^13.6.0",
     "firebase-functions": "^7.0.0"
   },
