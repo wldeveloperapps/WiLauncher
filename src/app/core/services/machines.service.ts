@@ -1,18 +1,17 @@
 import { effect, inject, Injectable, OnDestroy, signal } from '@angular/core';
-import { collection, Firestore, onSnapshot, Timestamp } from '@angular/fire/firestore';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
 import { MOCK_MACHINES } from '../data/mock-machines';
 import { Machine, MachineStatus, Provider } from '../models/machine.model';
-import { canOperate } from '../models/role.model';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-import { SessionService } from './session.service';
 
 interface MachineActionInput {
   machineId: string;
   provider: Provider;
   environment: string;
+  subscriptionId: string;
+  resourceGroup: string;
 }
 
 interface MachineActionResponse {
@@ -21,9 +20,9 @@ interface MachineActionResponse {
   message: string;
 }
 
-interface AzureSyncResult {
+interface ListMachinesResponse {
+  machines: Array<Record<string, unknown>>;
   subscriptions: number;
-  machines: number;
   syncedAt: string;
 }
 
@@ -31,10 +30,8 @@ interface AzureSyncResult {
   providedIn: 'root',
 })
 export class MachinesService implements OnDestroy {
-  private readonly firestore = inject(Firestore);
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
-  private readonly sessionService = inject(SessionService);
   private readonly useMockMachines = environment.useMockMachines;
 
   readonly machines = signal<Machine[]>([]);
@@ -42,63 +39,25 @@ export class MachinesService implements OnDestroy {
   readonly isRefreshing = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly actionInProgress = signal<string | null>(null);
+  readonly lastSyncedAt = signal<string | null>(null);
 
-  private unsubscribe: (() => void) | null = null;
   private mockTransitionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
       const user = this.authService.currentUser();
       if (user) {
-        this.startListening();
+        void this.loadMachines();
       } else {
-        this.stopListening();
+        this.clearMockTransitionTimer();
         this.machines.set([]);
+        this.lastSyncedAt.set(null);
         this.isLoading.set(false);
       }
     });
   }
 
   ngOnDestroy(): void {
-    this.stopListening();
-    this.clearMockTransitionTimer();
-  }
-
-  startListening(): void {
-    this.stopListening();
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    if (this.useMockMachines) {
-      const machines = [...MOCK_MACHINES].sort((a, b) =>
-        this.machineSortKey(a).localeCompare(this.machineSortKey(b)),
-      );
-      this.machines.set(machines);
-      this.isLoading.set(false);
-      return;
-    }
-
-    this.unsubscribe = onSnapshot(
-      collection(this.firestore, 'machines'),
-      (snapshot) => {
-        const machines = snapshot.docs
-          .map((doc) => this.mapMachine(doc.id, doc.data()))
-          .sort((a, b) => this.machineSortKey(a).localeCompare(this.machineSortKey(b)));
-        this.machines.set(machines);
-        this.isLoading.set(false);
-      },
-      (error) => {
-        this.errorMessage.set(`No se pudo cargar el inventario. ${error.message}`);
-        this.isLoading.set(false);
-      },
-    );
-  }
-
-  stopListening(): void {
-    if (this.unsubscribe) {
-      this.unsubscribe();
-      this.unsubscribe = null;
-    }
     this.clearMockTransitionTimer();
   }
 
@@ -107,30 +66,7 @@ export class MachinesService implements OnDestroy {
       return;
     }
 
-    if (this.useMockMachines) {
-      this.startListening();
-      return;
-    }
-
-    if (!canOperate(this.sessionService.role())) {
-      this.startListening();
-      return;
-    }
-
-    this.isRefreshing.set(true);
-    this.errorMessage.set(null);
-
-    try {
-      const callable = httpsCallable<void, AzureSyncResult>(
-        this.functions,
-        'syncAzureMachines',
-      );
-      await callable();
-    } catch (error) {
-      this.errorMessage.set(this.toRefreshError(error));
-    } finally {
-      this.isRefreshing.set(false);
-    }
+    await this.loadMachines({ refresh: true });
   }
 
   async startMachine(machine: Machine): Promise<void> {
@@ -147,6 +83,45 @@ export class MachinesService implements OnDestroy {
       return;
     }
     await this.executeAction(machine, 'stopMachine');
+  }
+
+  private async loadMachines(options: { refresh?: boolean } = {}): Promise<void> {
+    const { refresh = false } = options;
+
+    if (refresh) {
+      this.isRefreshing.set(true);
+    } else {
+      this.isLoading.set(true);
+    }
+
+    this.errorMessage.set(null);
+
+    if (this.useMockMachines) {
+      const machines = [...MOCK_MACHINES].sort((a, b) =>
+        this.machineSortKey(a).localeCompare(this.machineSortKey(b)),
+      );
+      this.machines.set(machines);
+      this.lastSyncedAt.set(null);
+      this.isLoading.set(false);
+      this.isRefreshing.set(false);
+      return;
+    }
+
+    try {
+      const callable = httpsCallable<void, ListMachinesResponse>(this.functions, 'listMachines');
+      const result = await callable();
+      const machines = result.data.machines
+        .map((machine) => this.mapMachine(machine))
+        .sort((a, b) => this.machineSortKey(a).localeCompare(this.machineSortKey(b)));
+
+      this.machines.set(machines);
+      this.lastSyncedAt.set(result.data.syncedAt);
+    } catch (error) {
+      this.errorMessage.set(this.toListError(error));
+    } finally {
+      this.isLoading.set(false);
+      this.isRefreshing.set(false);
+    }
   }
 
   private async executeMockAction(machine: Machine, action: 'start' | 'stop'): Promise<void> {
@@ -208,11 +183,26 @@ export class MachinesService implements OnDestroy {
         this.functions,
         functionName,
       );
-      await callable({
-        machineId: machine.id,
+      const response = await callable({
+        machineId: machine.machineId ?? machine.id,
         provider: machine.provider,
         environment: machine.environment,
+        subscriptionId: machine.subscriptionId ?? '',
+        resourceGroup: machine.resourceGroup ?? '',
       });
+
+      this.machines.update((machines) =>
+        machines.map((entry) => {
+          const id = entry.machineId ?? entry.id;
+          if (id !== actionKey) return entry;
+          return {
+            ...entry,
+            status: response.data.status,
+            updatedAt: new Date(),
+            updatedBy: this.authService.currentUser()?.email ?? undefined,
+          };
+        }),
+      );
     } catch (error) {
       this.errorMessage.set(this.toFriendlyError(error));
       throw error;
@@ -221,53 +211,48 @@ export class MachinesService implements OnDestroy {
     }
   }
 
-  private mapMachine(id: string, data: Record<string, unknown>): Machine {
+  private mapMachine(data: Record<string, unknown>): Machine {
+    const id = typeof data['id'] === 'string' ? data['id'] : '';
     return {
       id,
       machineId: typeof data['machineId'] === 'string' ? data['machineId'] : id,
       name: typeof data['name'] === 'string' ? data['name'] : undefined,
-      provider: (data['provider'] as Provider) ?? 'aws',
+      provider: (data['provider'] as Provider) ?? 'azure',
       environment: typeof data['environment'] === 'string' ? data['environment'] : 'DEV',
       status: (data['status'] as MachineStatus) ?? 'stopped',
       region: typeof data['region'] === 'string' ? data['region'] : undefined,
-      ipAddress: typeof data['ipAddress'] === 'string' ? data['ipAddress'] : undefined,
       instanceType: typeof data['instanceType'] === 'string' ? data['instanceType'] : undefined,
-      updatedBy: typeof data['updatedBy'] === 'string' ? data['updatedBy'] : undefined,
-      updatedAt: this.toDate(data['updatedAt']),
+      subscriptionId: typeof data['subscriptionId'] === 'string' ? data['subscriptionId'] : undefined,
+      resourceGroup: typeof data['resourceGroup'] === 'string' ? data['resourceGroup'] : undefined,
+      azureResourceId: typeof data['azureResourceId'] === 'string' ? data['azureResourceId'] : undefined,
+      updatedAt: new Date(),
     };
-  }
-
-  private toDate(value: unknown): Date | null {
-    if (value instanceof Timestamp) {
-      return value.toDate();
-    }
-    if (value instanceof Date) {
-      return value;
-    }
-    return null;
   }
 
   private machineSortKey(machine: Machine): string {
     return machine.name ?? machine.machineId ?? machine.id;
   }
 
-  private toRefreshError(error: unknown): string {
+  private toListError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('permission-denied')) {
-        return 'No tienes permisos para actualizar el inventario.';
+        return 'No tienes permisos para consultar el inventario.';
       }
-      if (error.message.includes('failed-precondition')) {
-        return 'La sincronizacion con Azure no esta activa todavia.';
+      if (error.message.includes('unauthenticated')) {
+        return 'Debes iniciar sesion para consultar el inventario.';
       }
-      return `No se pudo actualizar el inventario. ${error.message}`;
+      return `No se pudo cargar el inventario. ${error.message}`;
     }
-    return 'No se pudo actualizar el inventario.';
+    return 'No se pudo cargar el inventario.';
   }
 
   private toFriendlyError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('permission-denied')) {
         return 'No tienes permisos para realizar esta accion.';
+      }
+      if (error.message.includes('unimplemented')) {
+        return 'Esta accion aun no esta disponible para ese proveedor.';
       }
       return `No se pudo completar la accion. ${error.message}`;
     }

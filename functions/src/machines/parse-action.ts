@@ -5,6 +5,8 @@ export interface MachineActionInput {
   machineId: string;
   provider: Provider;
   environment: string;
+  subscriptionId: string;
+  resourceGroup: string;
 }
 
 /**
@@ -21,6 +23,8 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
   const machineId = candidate.machineId?.trim();
   const provider = candidate.provider?.trim().toLowerCase();
   const environment = candidate.environment?.trim();
+  const subscriptionId = candidate.subscriptionId?.trim();
+  const resourceGroup = candidate.resourceGroup?.trim();
 
   if (!machineId || !provider || !environment) {
     throw new HttpsError(
@@ -36,9 +40,18 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
     );
   }
 
+  if (provider === "azure" && (!subscriptionId || !resourceGroup)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "subscriptionId y resourceGroup son obligatorios para Azure.",
+    );
+  }
+
   return {
     machineId,
     provider: provider as Provider,
     environment,
+    subscriptionId: subscriptionId ?? "",
+    resourceGroup: resourceGroup ?? "",
   };
 }

@@ -5,7 +5,6 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideFirebaseApp, initializeApp, getApp } from '@angular/fire/app';
 import { provideAnalytics, getAnalytics } from '@angular/fire/analytics';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
-import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
 import { provideFunctions, getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { provideTransloco } from '@jsverse/transloco';
 
@@ -21,14 +20,6 @@ function connectFirebaseEmulators(): void {
   }
 
   connectAuthEmulator(getAuth(), environment.emulators.auth, { disableWarnings: true });
-
-  if (environment.useFirestoreEmulator) {
-    connectFirestoreEmulator(
-      getFirestore(),
-      environment.emulators.firestoreHost,
-      environment.emulators.firestorePort,
-    );
-  }
 
   connectFunctionsEmulator(
     getFunctions(getApp(), 'europe-west1'),
@@ -50,7 +41,6 @@ export const appConfig: ApplicationConfig = {
       connectFirebaseEmulators();
       return auth;
     }),
-    provideFirestore(() => getFirestore()),
     provideFunctions(() => getFunctions(getApp(), 'europe-west1')),
     provideHttpClient(),
     provideAnalytics(() => getAnalytics()),

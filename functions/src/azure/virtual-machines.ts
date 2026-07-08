@@ -1,4 +1,3 @@
-import {ComputeManagementClient} from "@azure/arm-compute";
 import type {MachineStatus} from "../models/machine-status.js";
 import {createAzureCredential} from "./credentials.js";
 import {
@@ -28,6 +27,7 @@ export interface AzureVirtualMachineSummary {
 export async function listAzureVirtualMachines(
   subscriptionId: string,
 ): Promise<AzureVirtualMachineSummary[]> {
+  const {ComputeManagementClient} = await import("@azure/arm-compute");
   const client = new ComputeManagementClient(
     createAzureCredential(),
     subscriptionId,

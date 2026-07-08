@@ -1,41 +1,38 @@
 import {getApps, initializeApp} from "firebase-admin/app";
 import {getAuth} from "firebase-admin/auth";
+import {logger} from "firebase-functions";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
-import {onSchedule} from "firebase-functions/v2/scheduler";
 
 import {
   assertAllowedRole,
   parseDevRole,
   requireAuthenticatedUser,
 } from "./auth/request-user.js";
-import {
-  azureSecrets,
-  azureSyncEnabled,
-} from "./azure/config.js";
-import {listAzureSubscriptions} from "./azure/subscriptions.js";
-import {syncAzureInventoryToFirestore} from "./azure/sync-inventory.js";
-import {MACHINES_COLLECTION} from "./machines/constants.js";
+import {azureSecrets} from "./azure/config.js";
 import {parseMachineActionInput} from "./machines/parse-action.js";
-import {getDb, upsertMachineTransition} from "./machines/transitions.js";
 
 if (!getApps().length) {
   initializeApp();
 }
+
+const callableOptions = {
+  invoker: "public",
+} as const;
 
 setGlobalOptions({
   maxInstances: 10,
   region: "europe-west1",
 });
 
-export const ping = onCall(async () => ({
+export const ping = onCall(callableOptions, async () => ({
   application: "WiLauncher",
   status: "running",
   message: "Backend funcionando correctamente",
   timestamp: new Date().toISOString(),
 }));
 
-export const getSessionContext = onCall(async (request) => {
+export const getSessionContext = onCall(callableOptions, async (request) => {
   const user = requireAuthenticatedUser(request);
 
   return {
@@ -46,7 +43,7 @@ export const getSessionContext = onCall(async (request) => {
   };
 });
 
-export const setDevRole = onCall(async (request) => {
+export const setDevRole = onCall(callableOptions, async (request) => {
   if (process.env.FUNCTIONS_EMULATOR !== "true") {
     throw new HttpsError(
       "permission-denied",
@@ -62,90 +59,97 @@ export const setDevRole = onCall(async (request) => {
   return {role};
 });
 
-export const listMachines = onCall(async (request) => {
-  const user = requireAuthenticatedUser(request);
-  await assertAllowedRole(user.role, ["viewer", "operator", "admin"]);
-
-  const machineDocs = await getDb()
-    .collection(MACHINES_COLLECTION)
-    .orderBy("name")
-    .limit(100)
-    .get();
-
-  const machines = machineDocs.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-
-  return {machines};
-});
-
-export const startMachine = onCall(async (request) => {
-  const user = requireAuthenticatedUser(request);
-  await assertAllowedRole(user.role, ["operator", "admin"]);
-
-  const input = parseMachineActionInput(request.data);
-  await upsertMachineTransition(input, "starting", user);
-
-  return {
-    machineId: input.machineId,
-    status: "starting",
-    message: "Solicitud de arranque registrada",
-  };
-});
-
-export const stopMachine = onCall(async (request) => {
-  const user = requireAuthenticatedUser(request);
-  await assertAllowedRole(user.role, ["operator", "admin"]);
-
-  const input = parseMachineActionInput(request.data);
-  await upsertMachineTransition(input, "stopping", user);
-
-  return {
-    machineId: input.machineId,
-    status: "stopping",
-    message: "Solicitud de parada registrada",
-  };
-});
-
-export const listAzureSubscriptionsCallable = onCall(
-  {secrets: azureSecrets},
+export const listMachines = onCall(
+  {...callableOptions, secrets: azureSecrets},
   async (request) => {
     const user = requireAuthenticatedUser(request);
-    await assertAllowedRole(user.role, ["admin"]);
+    await assertAllowedRole(user.role, ["viewer", "operator", "admin"]);
 
-    const subscriptions = await listAzureSubscriptions();
-    return {subscriptions};
+    const {listAzureInventory} = await import("./azure/list-inventory.js");
+    return listAzureInventory();
   },
 );
 
-export const syncAzureMachines = onCall(
-  {secrets: azureSecrets},
+export const startMachine = onCall(
+  {...callableOptions, secrets: azureSecrets},
   async (request) => {
     const user = requireAuthenticatedUser(request);
     await assertAllowedRole(user.role, ["operator", "admin"]);
 
-    if (azureSyncEnabled.value() !== "true") {
+    const input = parseMachineActionInput(request.data);
+
+    if (input.provider !== "azure") {
       throw new HttpsError(
-        "failed-precondition",
-        "AZURE_SYNC_ENABLED no esta activo.",
+        "unimplemented",
+        `Arranque para ${input.provider} aun no esta disponible.`,
       );
     }
 
-    return syncAzureInventoryToFirestore();
+    const {startAzureVirtualMachine} = await import("./azure/vm-actions.js");
+    await startAzureVirtualMachine(
+      input.subscriptionId,
+      input.resourceGroup,
+      input.machineId,
+    );
+
+    logger.info("Azure VM start requested", {
+      machineId: input.machineId,
+      uid: user.uid,
+      email: user.email,
+    });
+
+    return {
+      machineId: input.machineId,
+      status: "starting",
+      message: "Solicitud de arranque enviada a Azure",
+    };
   },
 );
 
-export const syncAzureMachinesScheduled = onSchedule(
-  {
-    schedule: "every 5 minutes",
-    secrets: azureSecrets,
-  },
-  async () => {
-    if (azureSyncEnabled.value() !== "true") {
-      return;
+export const stopMachine = onCall(
+  {...callableOptions, secrets: azureSecrets},
+  async (request) => {
+    const user = requireAuthenticatedUser(request);
+    await assertAllowedRole(user.role, ["operator", "admin"]);
+
+    const input = parseMachineActionInput(request.data);
+
+    if (input.provider !== "azure") {
+      throw new HttpsError(
+        "unimplemented",
+        `Apagado para ${input.provider} aun no esta disponible.`,
+      );
     }
 
-    await syncAzureInventoryToFirestore();
+    const {stopAzureVirtualMachine} = await import("./azure/vm-actions.js");
+    await stopAzureVirtualMachine(
+      input.subscriptionId,
+      input.resourceGroup,
+      input.machineId,
+    );
+
+    logger.info("Azure VM stop requested", {
+      machineId: input.machineId,
+      uid: user.uid,
+      email: user.email,
+    });
+
+    return {
+      machineId: input.machineId,
+      status: "stopping",
+      message: "Solicitud de apagado enviada a Azure",
+    };
+  },
+);
+
+export const listAzureSubscriptionsCallable = onCall(
+  {...callableOptions, secrets: azureSecrets},
+  async (request) => {
+    const user = requireAuthenticatedUser(request);
+    await assertAllowedRole(user.role, ["admin"]);
+
+    const {listAzureSubscriptions} = await import("./azure/subscriptions.js");
+    const subscriptions = await listAzureSubscriptions();
+    return {subscriptions};
   },
 );

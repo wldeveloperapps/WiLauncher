@@ -16,6 +16,9 @@ export interface Machine {
   region?: string;
   ipAddress?: string;
   instanceType?: string;
+  subscriptionId?: string;
+  resourceGroup?: string;
+  azureResourceId?: string;
   cpuUsage?: number;
   updatedAt?: Date | null;
   updatedBy?: string;
