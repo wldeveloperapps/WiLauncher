@@ -75,6 +75,42 @@
   gap: var(--space-1);
 }
 
+.layout__role-picker {
+  display: block;
+}
+
+.layout__role-select {
+  appearance: none;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 10px;
+  height: 40px;
+  padding: 0 var(--space-1);
+  text-align: center;
+  text-transform: uppercase;
+  width: 40px;
+}
+
+.layout__role-select:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .layout__icon-btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;

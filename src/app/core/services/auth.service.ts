@@ -91,13 +91,17 @@ export class AuthService {
         await updateProfile(credential.user, { displayName: devLogin.displayName });
       }
 
-      if (environment.useEmulators) {
-        const callable = httpsCallable<{ role: UserRole }, { role: UserRole }>(
-          this.functions,
-          'setDevRole',
-        );
-        await callable({ role });
-        await credential.user.getIdToken(true);
+      if (!environment.production) {
+        try {
+          const callable = httpsCallable<{ role: UserRole }, { role: UserRole }>(
+            this.functions,
+            'setDevRole',
+          );
+          await callable({ role });
+          await credential.user.getIdToken(true);
+        } catch {
+          // El rol de interfaz se aplica via SessionService tras el login.
+        }
       }
     } catch (error) {
       this.errorMessage.set(this.toDevFriendlyError(error));
@@ -122,6 +126,13 @@ export class AuthService {
 
   clearError(): void {
     this.errorMessage.set(null);
+  }
+
+  async refreshIdToken(): Promise<void> {
+    const user = this.currentUser();
+    if (user) {
+      await user.getIdToken(true);
+    }
   }
 
   ngOnDestroy(): void {

@@ -203,6 +203,10 @@ export class MachinesService implements OnDestroy {
           };
         }),
       );
+
+      window.setTimeout(() => {
+        void this.loadMachines({ refresh: true });
+      }, 4000);
     } catch (error) {
       this.errorMessage.set(this.toFriendlyError(error));
       throw error;

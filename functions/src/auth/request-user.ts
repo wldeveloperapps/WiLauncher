@@ -3,6 +3,21 @@ import {HttpsError, type CallableRequest} from "firebase-functions/v2/https";
 export const ROLES = ["viewer", "operator", "admin"] as const;
 export type UserRole = (typeof ROLES)[number];
 
+const DEV_FIREBASE_PROJECT_IDS = new Set(["wilauncher-9e648"]);
+
+/**
+ * Whether the deployment allows dev-only role management.
+ * @return {boolean} True for emulators or the dev Firebase project.
+ */
+export function isDevDeployment(): boolean {
+  if (process.env.FUNCTIONS_EMULATOR === "true") {
+    return true;
+  }
+
+  const projectId = process.env.GCLOUD_PROJECT ?? process.env.GCP_PROJECT ?? "";
+  return DEV_FIREBASE_PROJECT_IDS.has(projectId);
+}
+
 export interface RequestUserContext {
   uid: string;
   email: string | null;
@@ -12,21 +27,48 @@ export interface RequestUserContext {
 /**
  * Ensures request comes from authenticated Firebase user.
  * @param {CallableRequest<unknown>} request Incoming callable request.
- * @return {RequestUserContext} User context.
+ * @return {Promise<RequestUserContext>} User context.
  */
-export function requireAuthenticatedUser(
+export async function requireAuthenticatedUser(
   request: CallableRequest<unknown>,
-): RequestUserContext {
+): Promise<RequestUserContext> {
   if (!request.auth?.uid) {
     throw new HttpsError("unauthenticated", "Debes iniciar sesion.");
   }
 
-  const role = resolveUserRole(request.auth.token.role);
+  const role = await resolveRequestRole(
+    request.auth.uid,
+    request.auth.token.role,
+  );
+
   return {
     uid: request.auth.uid,
     email: request.auth.token.email ?? null,
     role,
   };
+}
+
+/**
+ * Resolves the effective role for a request.
+ * @param {string} uid Firebase Auth UID (unused until Firestore roles exist).
+ * @param {unknown} rawClaimRole Role from custom claims.
+ * @return {Promise<UserRole>} Effective role.
+ */
+export async function resolveRequestRole(
+  uid: string,
+  rawClaimRole: unknown,
+): Promise<UserRole> {
+  void uid;
+  const claimRole = resolveUserRole(rawClaimRole);
+  if (claimRole !== "viewer") {
+    return claimRole;
+  }
+
+  if (isDevDeployment()) {
+    return "operator";
+  }
+
+  return "viewer";
 }
 
 /**

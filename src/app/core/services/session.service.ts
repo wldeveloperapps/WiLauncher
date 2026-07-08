@@ -10,6 +10,7 @@ interface SessionContextResponse {
   uid: string;
   email: string | null;
   role: UserRole;
+  tokenRefreshRequired?: boolean;
 }
 
 const DEV_ROLE_STORAGE_KEY = 'wilauncher-dev-role';
@@ -49,6 +50,29 @@ export class SessionService {
     this.persistDevRole(role);
   }
 
+  async setRole(role: UserRole): Promise<void> {
+    this.errorMessage.set(null);
+
+    if (!environment.production) {
+      try {
+        const callable = httpsCallable<{ role: UserRole }, { role: UserRole }>(
+          this.functions,
+          'setDevRole',
+        );
+        await callable({ role });
+        await this.authService.refreshIdToken();
+      } catch {
+        if (canOperate(role)) {
+          this.errorMessage.set(
+            'Rol aplicado en la interfaz. Despliega las functions para sincronizar permisos con el backend.',
+          );
+        }
+      }
+    }
+
+    this.setDevRoleOverride(role);
+  }
+
   clearDevRoleOverride(): void {
     this.devRoleOverride.set(null);
     this.clearStoredDevRole();
@@ -65,13 +89,6 @@ export class SessionService {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    const devRole = this.resolveDevRole();
-    if (!environment.production && devRole) {
-      this.role.set(devRole);
-      this.isLoading.set(false);
-      return;
-    }
-
     if (!environment.production && this.shouldUseLocalDevRole()) {
       this.role.set(environment.auth.devLogin.defaultRole);
       this.isLoading.set(false);
@@ -86,13 +103,24 @@ export class SessionService {
         return;
       }
 
+      if (result.data.tokenRefreshRequired) {
+        await this.authService.refreshIdToken();
+      }
+
       const devRoleAfterLoad = this.resolveDevRole();
-      if (!environment.production && devRoleAfterLoad) {
+      const backendRole = result.data.role ?? 'viewer';
+
+      if (!environment.production && devRoleAfterLoad && devRoleAfterLoad !== 'viewer') {
         this.role.set(devRoleAfterLoad);
         return;
       }
 
-      this.role.set(result.data.role ?? 'viewer');
+      if (!environment.production && backendRole === 'viewer') {
+        this.role.set('operator');
+        return;
+      }
+
+      this.role.set(backendRole);
     } catch (error) {
       if (requestId !== this.loadRequestId) {
         return;

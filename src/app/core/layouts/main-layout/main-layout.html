@@ -39,6 +39,20 @@
     </nav>
 
     <div class="layout__footer">
+      @if (showDevRolePicker) {
+        <label class="layout__role-picker" [attr.title]="'layout.devRole' | transloco">
+          <span class="sr-only">{{ 'layout.devRole' | transloco }}</span>
+          <select
+            class="layout__role-select font-mono"
+            [value]="sessionService.role()"
+            (change)="onDevRoleChange($event)"
+          >
+            @for (role of devRoles; track role) {
+              <option [value]="role">{{ role }}</option>
+            }
+          </select>
+        </label>
+      }
       <button
         type="button"
         class="layout__icon-btn"
@@ -86,6 +100,9 @@
   </aside>
 
   <main class="layout__main">
+    @if (sessionService.errorMessage()) {
+      <p class="layout__error">{{ sessionService.errorMessage() }}</p>
+    }
     @if (authService.errorMessage()) {
       <p class="layout__error">{{ authService.errorMessage() }}</p>
     }

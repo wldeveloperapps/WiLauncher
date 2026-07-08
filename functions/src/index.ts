@@ -1,16 +1,18 @@
 import {getApps, initializeApp} from "firebase-admin/app";
-import {getAuth} from "firebase-admin/auth";
 import {logger} from "firebase-functions";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 
 import {
   assertAllowedRole,
+  isDevDeployment,
   parseDevRole,
   requireAuthenticatedUser,
+  resolveUserRole,
 } from "./auth/request-user.js";
 import {azureSecrets} from "./azure/config.js";
 import {parseMachineActionInput} from "./machines/parse-action.js";
+import {persistUserRole} from "./auth/user-roles.js";
 
 if (!getApps().length) {
   initializeApp();
@@ -33,36 +35,37 @@ export const ping = onCall(callableOptions, async () => ({
 }));
 
 export const getSessionContext = onCall(callableOptions, async (request) => {
-  const user = requireAuthenticatedUser(request);
+  const user = await requireAuthenticatedUser(request);
 
   return {
     application: "WiLauncher",
     uid: user.uid,
     email: user.email,
     role: user.role,
+    tokenRefreshRequired: false,
   };
 });
 
 export const setDevRole = onCall(callableOptions, async (request) => {
-  if (process.env.FUNCTIONS_EMULATOR !== "true") {
+  if (!isDevDeployment()) {
     throw new HttpsError(
       "permission-denied",
-      "setDevRole solo esta disponible con emuladores locales.",
+      "setDevRole solo esta disponible en entornos de desarrollo.",
     );
   }
 
-  const user = requireAuthenticatedUser(request);
+  const user = await requireAuthenticatedUser(request);
   const role = parseDevRole(request.data);
 
-  await getAuth().setCustomUserClaims(user.uid, {role});
+  await persistUserRole(user.uid, role);
 
-  return {role};
+  return {role: resolveUserRole(role)};
 });
 
 export const listMachines = onCall(
   {...callableOptions, secrets: azureSecrets},
   async (request) => {
-    const user = requireAuthenticatedUser(request);
+    const user = await requireAuthenticatedUser(request);
     await assertAllowedRole(user.role, ["viewer", "operator", "admin"]);
 
     const {listAzureInventory} = await import("./azure/list-inventory.js");
@@ -73,7 +76,7 @@ export const listMachines = onCall(
 export const startMachine = onCall(
   {...callableOptions, secrets: azureSecrets},
   async (request) => {
-    const user = requireAuthenticatedUser(request);
+    const user = await requireAuthenticatedUser(request);
     await assertAllowedRole(user.role, ["operator", "admin"]);
 
     const input = parseMachineActionInput(request.data);
@@ -109,7 +112,7 @@ export const startMachine = onCall(
 export const stopMachine = onCall(
   {...callableOptions, secrets: azureSecrets},
   async (request) => {
-    const user = requireAuthenticatedUser(request);
+    const user = await requireAuthenticatedUser(request);
     await assertAllowedRole(user.role, ["operator", "admin"]);
 
     const input = parseMachineActionInput(request.data);
@@ -145,7 +148,7 @@ export const stopMachine = onCall(
 export const listAzureSubscriptionsCallable = onCall(
   {...callableOptions, secrets: azureSecrets},
   async (request) => {
-    const user = requireAuthenticatedUser(request);
+    const user = await requireAuthenticatedUser(request);
     await assertAllowedRole(user.role, ["admin"]);
 
     const {listAzureSubscriptions} = await import("./azure/subscriptions.js");

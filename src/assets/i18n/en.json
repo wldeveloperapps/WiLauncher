@@ -26,7 +26,8 @@
     "home": "WiLauncher home",
     "navInventory": "Inventory",
     "navAudit": "Audit",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "devRole": "Test role"
   },
   "dashboard": {
     "pageTitle": "Machine inventory",

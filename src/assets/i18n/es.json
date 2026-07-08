@@ -26,7 +26,8 @@
     "home": "WiLauncher inicio",
     "navInventory": "Inventario",
     "navAudit": "Auditoría",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "devRole": "Rol de prueba"
   },
   "dashboard": {
     "pageTitle": "Inventario de máquinas",
