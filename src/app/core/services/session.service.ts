@@ -1,7 +1,7 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
-import { canOperate, ROLES, UserRole } from '../models/role.model';
+import { ROLES, UserRole } from '../models/role.model';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -25,7 +25,7 @@ export class SessionService {
   readonly role = signal<UserRole>('viewer');
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly canOperate = computed(() => canOperate(this.role()));
+  readonly canOperate = computed(() => this.authService.isAuthenticated());
 
   private readonly devRoleOverride = signal<UserRole | null>(this.readStoredDevRole());
   private loadRequestId = 0;
@@ -48,29 +48,6 @@ export class SessionService {
     this.devRoleOverride.set(role);
     this.role.set(role);
     this.persistDevRole(role);
-  }
-
-  async setRole(role: UserRole): Promise<void> {
-    this.errorMessage.set(null);
-
-    if (!environment.production) {
-      try {
-        const callable = httpsCallable<{ role: UserRole }, { role: UserRole }>(
-          this.functions,
-          'setDevRole',
-        );
-        await callable({ role });
-        await this.authService.refreshIdToken();
-      } catch {
-        if (canOperate(role)) {
-          this.errorMessage.set(
-            'Rol aplicado en la interfaz. Despliega las functions para sincronizar permisos con el backend.',
-          );
-        }
-      }
-    }
-
-    this.setDevRoleOverride(role);
   }
 
   clearDevRoleOverride(): void {
