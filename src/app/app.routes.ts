@@ -19,12 +19,7 @@ export const routes: Routes = [
           import('./features/dashboard/pages/dashboard-page/dashboard-page').then(
             (m) => m.DashboardPage,
           ),
-      },
-      {
-        path: 'audit',
-        loadComponent: () =>
-          import('./features/audit/pages/audit-page/audit-page').then((m) => m.AuditPage),
-      },
+      }
     ],
   },
   {
