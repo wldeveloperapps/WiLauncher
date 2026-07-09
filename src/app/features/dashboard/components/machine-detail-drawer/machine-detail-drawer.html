@@ -71,30 +71,7 @@
       </dl>
 
       <section class="drawer__activity">
-        <button
-          type="button"
-          class="drawer__activity-toggle"
-          [attr.aria-expanded]="logsExpanded()"
-          [attr.aria-controls]="'machine-activity-list'"
-          (click)="toggleLogs()"
-        >
-          <span class="drawer__activity-title">{{ 'dashboard.recentActivity' | transloco }}</span>
-          <svg
-            class="drawer__activity-chevron"
-            [class.drawer__activity-chevron--expanded]="logsExpanded()"
-            viewBox="0 0 16 16"
-            aria-hidden="true"
-          >
-            <path
-              d="M4 6l4 4 4-4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </button>
+        <h3 class="drawer__activity-title">{{ 'dashboard.recentActivity' | transloco }}</h3>
 
         <ul id="machine-activity-list" class="drawer__activity-list">
           @if (activityLoading()) {
@@ -102,7 +79,7 @@
           } @else if (activityError()) {
             <li class="drawer__activity-error">{{ activityError() }}</li>
           } @else {
-            @for (log of visibleLogs(); track log.id) {
+            @for (log of activityLogs(); track log.id) {
               <li class="drawer__activity-item">
                 <span class="drawer__activity-time font-mono">{{ formatLogTime(log.timestamp) }}</span>
                 <span class="drawer__activity-action font-mono">{{ log.action }}</span>
@@ -113,16 +90,6 @@
             }
           }
         </ul>
-
-        @if (hasMoreLogs() && !activityLoading() && !activityError()) {
-          <button type="button" class="drawer__activity-more" (click)="toggleLogs()">
-            @if (logsExpanded()) {
-              {{ 'dashboard.showLessActivity' | transloco }}
-            } @else {
-              {{ 'dashboard.showMoreActivity' | transloco: { count: hiddenLogCount() } }}
-            }
-          </button>
-        }
       </section>
 
       @if (canOperate()) {

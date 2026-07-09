@@ -123,34 +123,12 @@
   padding: 0 var(--space-3);
 }
 
-.drawer__activity-toggle {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: var(--text-primary);
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 0 var(--space-1);
-  width: 100%;
-}
-
 .drawer__activity-title {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
+  margin: 0 0 var(--space-1);
   text-transform: uppercase;
-}
-
-.drawer__activity-chevron {
-  color: var(--text-muted);
-  height: 16px;
-  transition: transform var(--motion-fast);
-  width: 16px;
-
-  &--expanded {
-    transform: rotate(180deg);
-  }
 }
 
 .drawer__activity-list {
@@ -159,6 +137,26 @@
   margin: 0;
   overflow-y: auto;
   padding: 0;
+  scrollbar-color: var(--border-subtle) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 9999px;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+  }
 }
 
 .drawer__activity-item {
@@ -166,7 +164,7 @@
   border-bottom: 1px solid var(--border-default);
   display: grid;
   gap: 4px var(--space-1);
-  grid-template-columns: 72px 1fr auto;
+  grid-template-columns: 112px 1fr auto;
   padding: 10px 0;
 
   &:last-child {
@@ -200,24 +198,6 @@
   color: var(--color-error);
   font-size: 14px;
   padding: var(--space-2) 0;
-}
-
-.drawer__activity-more {
-  background: transparent;
-  border: 0;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: var(--space-1);
-  padding: var(--space-1) 0;
-  text-align: left;
-  transition: color var(--motion-fast);
-
-  &:hover {
-    color: var(--text-primary);
-  }
 }
 
 .drawer__footer {
@@ -270,12 +250,6 @@
 
   &:hover:not(:disabled) {
     border-color: var(--text-secondary);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .drawer__activity-chevron {
-    transition: none;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { Machine, isTransitioning, providerLabel } from '../../../../core/models/machine.model';
@@ -7,8 +7,6 @@ import { MachineActivityService } from '../../../../core/services/machine-activi
 import { EnvChip } from '../../../../shared/ui/env-chip/env-chip';
 import { ProviderGlyph } from '../../../../shared/ui/provider-glyph/provider-glyph';
 import { StatusBadge } from '../../../../shared/ui/status-badge/status-badge';
-
-const ACTIVITY_PREVIEW_COUNT = 3;
 
 @Component({
   selector: 'app-machine-detail-drawer',
@@ -29,11 +27,10 @@ export class MachineDetailDrawer {
   readonly startRequested = output<Machine>();
   readonly stopRequested = output<Machine>();
 
-  protected readonly logsExpanded = signal(false);
   protected readonly providerLabel = providerLabel;
   protected readonly isTransitioning = isTransitioning;
 
-  private readonly activityLogs = computed(() => {
+  protected readonly activityLogs = computed(() => {
     this.activityService.revision();
     const machine = this.machine();
     if (!machine) {
@@ -41,20 +38,6 @@ export class MachineDetailDrawer {
     }
     return this.activityService.getActivity(machine);
   });
-
-  protected readonly visibleLogs = computed(() => {
-    const logs = this.activityLogs();
-    if (this.logsExpanded()) {
-      return logs;
-    }
-    return logs.slice(0, ACTIVITY_PREVIEW_COUNT);
-  });
-
-  protected readonly hiddenLogCount = computed(() =>
-    Math.max(0, this.activityLogs().length - ACTIVITY_PREVIEW_COUNT),
-  );
-
-  protected readonly hasMoreLogs = computed(() => this.hiddenLogCount() > 0);
 
   protected readonly activityLoading = computed(() => {
     const machine = this.machine();
@@ -69,7 +52,6 @@ export class MachineDetailDrawer {
   constructor() {
     effect(() => {
       if (!this.open()) {
-        this.logsExpanded.set(false);
         return;
       }
 
@@ -88,28 +70,27 @@ export class MachineDetailDrawer {
     return machine.name ?? this.machineId(machine);
   }
 
-  protected toggleLogs(): void {
-    this.logsExpanded.update((expanded) => !expanded);
-  }
-
   protected formatLogTime(timestamp: Date): string {
+    const time = this.formatTime(timestamp);
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfLogDay = new Date(timestamp.getFullYear(), timestamp.getMonth(), timestamp.getDate());
     const dayDiff = Math.round((startOfToday.getTime() - startOfLogDay.getTime()) / 86_400_000);
 
     if (dayDiff === 0) {
-      return this.formatUtcTime(timestamp);
+      return time;
     }
 
     if (dayDiff === 1) {
-      return this.transloco.translate('dashboard.yesterday');
+      return `${this.transloco.translate('dashboard.yesterday')} ${time}`;
     }
 
-    return new Intl.DateTimeFormat(this.localeService.activeLang(), {
+    const date = new Intl.DateTimeFormat(this.localeService.activeLang(), {
       day: '2-digit',
       month: 'short',
     }).format(timestamp);
+
+    return `${date} ${time}`;
   }
 
   protected onClose(): void {
@@ -126,10 +107,10 @@ export class MachineDetailDrawer {
     this.stopRequested.emit(machine);
   }
 
-  private formatUtcTime(timestamp: Date): string {
-    const hours = timestamp.getUTCHours().toString().padStart(2, '0');
-    const minutes = timestamp.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = timestamp.getUTCSeconds().toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}Z`;
+  private formatTime(timestamp: Date): string {
+    const hours = timestamp.getHours().toString().padStart(2, '0');
+    const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+    const seconds = timestamp.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
   }
 }
