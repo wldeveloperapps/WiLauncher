@@ -8,13 +8,6 @@
       (click)="$event.stopPropagation()"
     >
       <header class="drawer__header">
-        <div class="drawer__identity">
-          <app-provider-glyph [provider]="selected.provider" />
-          <div>
-            <h2 class="drawer__name">{{ machineName(selected) }}</h2>
-            <p class="drawer__id font-mono">{{ machineId(selected) }}</p>
-          </div>
-        </div>
         <button
           type="button"
           class="drawer__close"
@@ -31,11 +24,18 @@
             />
           </svg>
         </button>
-      </header>
 
-      <div class="drawer__status">
-        <app-status-badge [status]="selected.status" />
-      </div>
+        <div class="drawer__identity">
+          <app-provider-glyph [provider]="selected.provider" />
+          <div class="drawer__title">
+            <h2 class="drawer__name">{{ machineName(selected) }}</h2>
+            @if (showMachineId(selected)) {
+              <p class="drawer__id font-mono">{{ machineId(selected) }}</p>
+            }
+            <app-status-badge class="drawer__status-badge" [status]="selected.status" />
+          </div>
+        </div>
+      </header>
 
       <dl class="drawer__specs">
         <div class="drawer__spec">

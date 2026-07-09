@@ -70,6 +70,10 @@ export class MachineDetailDrawer {
     return machine.name ?? this.machineId(machine);
   }
 
+  protected showMachineId(machine: Machine): boolean {
+    return this.machineName(machine) !== this.machineId(machine);
+  }
+
   protected formatLogTime(timestamp: Date): string {
     const time = this.formatTime(timestamp);
     const now = new Date();
