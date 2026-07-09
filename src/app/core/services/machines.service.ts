@@ -5,6 +5,7 @@ import { MOCK_MACHINES } from '../data/mock-machines';
 import { Machine, MachineStatus, Provider } from '../models/machine.model';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { MachineActivityService } from './machine-activity.service';
 
 interface MachineActionInput {
   machineId: string;
@@ -32,6 +33,7 @@ interface ListMachinesResponse {
 export class MachinesService implements OnDestroy {
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
+  private readonly activityService = inject(MachineActivityService);
   private readonly useMockMachines = environment.useMockMachines;
 
   readonly machines = signal<Machine[]>([]);
@@ -206,6 +208,7 @@ export class MachinesService implements OnDestroy {
 
       window.setTimeout(() => {
         void this.loadMachines({ refresh: true });
+        void this.activityService.loadActivity(machine, { force: true });
       }, 4000);
     } catch (error) {
       this.errorMessage.set(this.toFriendlyError(error));

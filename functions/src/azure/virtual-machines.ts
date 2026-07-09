@@ -51,7 +51,7 @@ export async function listAzureVirtualMachines(
       ?.code;
 
     machines.push({
-      azureResourceId: vm.id.toLowerCase(),
+      azureResourceId: vm.id,
       machineId: vm.name,
       name: vm.name,
       provider: "azure",

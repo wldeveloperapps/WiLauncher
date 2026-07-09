@@ -61,7 +61,8 @@
     "cpu": "CPU",
     "privateIp": "Private IP",
     "recentActivity": "Recent activity",
-    "noActivity": "No activity recorded.",
+    "noActivity": "No activity recorded in Azure.",
+    "loadingActivity": "Loading Azure activity...",
     "showMoreActivity": "Show {{count}} more",
     "showLessActivity": "Show less",
     "yesterday": "Yesterday"

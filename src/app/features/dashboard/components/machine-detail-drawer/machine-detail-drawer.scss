@@ -196,6 +196,12 @@
   padding: var(--space-2) 0;
 }
 
+.drawer__activity-error {
+  color: var(--color-error);
+  font-size: 14px;
+  padding: var(--space-2) 0;
+}
+
 .drawer__activity-more {
   background: transparent;
   border: 0;

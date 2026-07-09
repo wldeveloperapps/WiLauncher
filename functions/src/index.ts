@@ -12,6 +12,7 @@ import {
 } from "./auth/request-user.js";
 import {azureSecrets} from "./azure/config.js";
 import {parseMachineActionInput} from "./machines/parse-action.js";
+import {parseMachineActivityInput} from "./machines/parse-activity.js";
 import {persistUserRole} from "./auth/user-roles.js";
 
 if (!getApps().length) {
@@ -154,5 +155,41 @@ export const listAzureSubscriptionsCallable = onCall(
     const {listAzureSubscriptions} = await import("./azure/subscriptions.js");
     const subscriptions = await listAzureSubscriptions();
     return {subscriptions};
+  },
+);
+
+export const listMachineActivity = onCall(
+  {...callableOptions, secrets: azureSecrets},
+  async (request) => {
+    const user = await requireAuthenticatedUser(request);
+    await assertAllowedRole(user.role, ["viewer", "operator", "admin"]);
+
+    const input = parseMachineActivityInput(request.data);
+
+    if (input.provider !== "azure") {
+      throw new HttpsError(
+        "unimplemented",
+        `Actividad para ${input.provider} aun no esta disponible.`,
+      );
+    }
+
+    const {listAzureVmActivityLogs} = await import("./azure/activity-log.js");
+    const logs = await listAzureVmActivityLogs({
+      subscriptionId: input.subscriptionId,
+      resourceGroup: input.resourceGroup,
+      machineId: input.machineId,
+      azureResourceId: input.azureResourceId,
+    });
+
+    logger.info("Azure VM activity listed", {
+      machineId: input.machineId,
+      subscriptionId: input.subscriptionId,
+      resourceGroup: input.resourceGroup,
+      azureResourceId: input.azureResourceId,
+      uid: user.uid,
+      count: logs.length,
+    });
+
+    return {logs};
   },
 );

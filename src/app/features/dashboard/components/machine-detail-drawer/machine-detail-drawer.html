@@ -97,18 +97,24 @@
         </button>
 
         <ul id="machine-activity-list" class="drawer__activity-list">
-          @for (log of visibleLogs(); track log.id) {
-            <li class="drawer__activity-item">
-              <span class="drawer__activity-time font-mono">{{ formatLogTime(log.timestamp) }}</span>
-              <span class="drawer__activity-action font-mono">{{ log.action }}</span>
-              <span class="drawer__activity-actor">{{ log.actor }}</span>
-            </li>
-          } @empty {
-            <li class="drawer__activity-empty">{{ 'dashboard.noActivity' | transloco }}</li>
+          @if (activityLoading()) {
+            <li class="drawer__activity-empty">{{ 'dashboard.loadingActivity' | transloco }}</li>
+          } @else if (activityError()) {
+            <li class="drawer__activity-error">{{ activityError() }}</li>
+          } @else {
+            @for (log of visibleLogs(); track log.id) {
+              <li class="drawer__activity-item">
+                <span class="drawer__activity-time font-mono">{{ formatLogTime(log.timestamp) }}</span>
+                <span class="drawer__activity-action font-mono">{{ log.action }}</span>
+                <span class="drawer__activity-actor">{{ log.actor }}</span>
+              </li>
+            } @empty {
+              <li class="drawer__activity-empty">{{ 'dashboard.noActivity' | transloco }}</li>
+            }
           }
         </ul>
 
-        @if (hasMoreLogs()) {
+        @if (hasMoreLogs() && !activityLoading() && !activityError()) {
           <button type="button" class="drawer__activity-more" (click)="toggleLogs()">
             @if (logsExpanded()) {
               {{ 'dashboard.showLessActivity' | transloco }}

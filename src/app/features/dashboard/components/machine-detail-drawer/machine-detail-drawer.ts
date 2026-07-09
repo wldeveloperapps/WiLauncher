@@ -34,6 +34,7 @@ export class MachineDetailDrawer {
   protected readonly isTransitioning = isTransitioning;
 
   private readonly activityLogs = computed(() => {
+    this.activityService.revision();
     const machine = this.machine();
     if (!machine) {
       return [];
@@ -55,10 +56,26 @@ export class MachineDetailDrawer {
 
   protected readonly hasMoreLogs = computed(() => this.hiddenLogCount() > 0);
 
+  protected readonly activityLoading = computed(() => {
+    const machine = this.machine();
+    return machine ? this.activityService.isLoading(machine) : false;
+  });
+
+  protected readonly activityError = computed(() => {
+    const machine = this.machine();
+    return machine ? this.activityService.getError(machine) : null;
+  });
+
   constructor() {
     effect(() => {
       if (!this.open()) {
         this.logsExpanded.set(false);
+        return;
+      }
+
+      const machine = this.machine();
+      if (machine) {
+        void this.activityService.loadActivity(machine);
       }
     });
   }
