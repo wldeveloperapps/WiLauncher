@@ -183,9 +183,6 @@ export const listMachineActivity = onCall(
 
     logger.info("Azure VM activity listed", {
       machineId: input.machineId,
-      subscriptionId: input.subscriptionId,
-      resourceGroup: input.resourceGroup,
-      azureResourceId: input.azureResourceId,
       uid: user.uid,
       count: logs.length,
     });
