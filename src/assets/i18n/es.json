@@ -34,7 +34,6 @@
     "pageSubtitle": "VMs orquestadas · multi-cloud",
     "searchPlaceholder": "Buscar nombre, ID, región...",
     "loading": "Cargando inventario...",
-    "emptyTitle": "// no_machines_found",
     "emptyMessage": "No hay máquinas que coincidan con los filtros actuales.",
     "provider": "Proveedor",
     "environment": "Entorno",

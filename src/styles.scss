@@ -69,6 +69,7 @@
   --text-muted: var(--color-neutral-300);
   --accent-primary: var(--color-green);
   --accent-primary-hover: var(--color-green-hover);
+  --select-accent: var(--color-neutral-500);
 }
 
 .wiloc-dark {
@@ -81,6 +82,7 @@
   --text-primary: var(--color-neutral-50);
   --text-secondary: var(--color-neutral-300);
   --text-muted: var(--color-neutral-500);
+  --select-accent: var(--color-neutral-300);
 }
 
 *,
@@ -125,6 +127,20 @@ h4 {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+select {
+  accent-color: var(--select-accent);
+  color-scheme: light;
+}
+
+select option {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.wiloc-dark select {
+  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {

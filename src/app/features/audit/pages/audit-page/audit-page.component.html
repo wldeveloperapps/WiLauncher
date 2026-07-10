@@ -12,8 +12,7 @@
     <p class="audit__status">{{ 'audit.loading' | transloco }}</p>
   } @else if (auditService.entries().length === 0) {
     <div class="audit__empty">
-      <p class="font-mono">{{ 'audit.emptyTitle' | transloco }}</p>
-      <p>{{ 'audit.emptyMessage' | transloco }}</p>
+       <p>{{ 'audit.emptyMessage' | transloco }}</p>
     </div>
   } @else {
     <div class="audit__table-wrapper">

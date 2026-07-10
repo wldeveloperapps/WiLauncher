@@ -34,7 +34,6 @@
     "pageSubtitle": "Orchestrated VMs · multi-cloud",
     "searchPlaceholder": "Search name, ID, region...",
     "loading": "Loading inventory...",
-    "emptyTitle": "// no_machines_found",
     "emptyMessage": "No machines match the current filters.",
     "provider": "Provider",
     "environment": "Environment",

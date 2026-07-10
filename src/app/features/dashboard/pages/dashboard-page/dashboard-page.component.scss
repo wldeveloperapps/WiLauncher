@@ -119,23 +119,36 @@
     background-color var(--motion-fast),
     border-color var(--motion-fast),
     color var(--motion-fast);
-}
 
-.dashboard__pill:hover {
-  border-color: var(--text-secondary);
-  color: var(--text-primary);
+  &:hover:not(.dashboard__pill--active) {
+    background: var(--bg-elevated);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+  }
 }
 
 .dashboard__pill--active {
   background: var(--text-primary);
   border-color: var(--text-primary);
   color: var(--bg-base);
+
+  &:hover {
+    background: var(--color-neutral-700);
+    border-color: var(--color-neutral-700);
+    color: var(--color-neutral-50);
+  }
 }
 
 .wiloc-dark .dashboard__pill--active {
   background: var(--color-white);
   border-color: var(--color-white);
   color: var(--color-black);
+
+  &:hover {
+    background: var(--color-neutral-100);
+    border-color: var(--color-neutral-100);
+    color: var(--color-black);
+  }
 }
 
 .dashboard__dropdowns {
