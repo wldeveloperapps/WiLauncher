@@ -27,7 +27,7 @@ import { Component, input } from '@angular/core';
     }
   `,
 })
-export class EnvChip {
+export class EnvChipComponent {
   readonly environment = input.required<string>();
 
   protected isProd(): boolean {

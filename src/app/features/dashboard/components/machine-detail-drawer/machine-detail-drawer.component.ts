@@ -4,17 +4,17 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Machine, isTransitioning, providerLabel } from '../../../../core/models/machine.model';
 import { LocaleService } from '../../../../core/services/locale.service';
 import { MachineActivityService } from '../../../../core/services/machine-activity.service';
-import { EnvChip } from '../../../../shared/ui/env-chip/env-chip';
-import { ProviderGlyph } from '../../../../shared/ui/provider-glyph/provider-glyph';
-import { StatusBadge } from '../../../../shared/ui/status-badge/status-badge';
+import { EnvChipComponent } from '../../../../shared/ui/env-chip/env-chip.component';
+import { ProviderGlyphComponent } from '../../../../shared/ui/provider-glyph/provider-glyph.component';
+import { StatusBadgeComponent } from '../../../../shared/ui/status-badge/status-badge.component';
 
 @Component({
   selector: 'app-machine-detail-drawer',
-  imports: [EnvChip, ProviderGlyph, StatusBadge, TranslocoPipe],
-  templateUrl: './machine-detail-drawer.html',
-  styleUrl: './machine-detail-drawer.scss',
+  imports: [EnvChipComponent, ProviderGlyphComponent, StatusBadgeComponent, TranslocoPipe],
+  templateUrl: './machine-detail-drawer.component.html',
+  styleUrl: './machine-detail-drawer.component.scss',
 })
-export class MachineDetailDrawer {
+export class MachineDetailDrawerComponent {
   private readonly transloco = inject(TranslocoService);
   private readonly activityService = inject(MachineActivityService);
   protected readonly localeService = inject(LocaleService);

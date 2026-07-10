@@ -1,0 +1,15 @@
+<div class="page-shell">
+  <div class="page-shell__sticky">
+    <header class="page-shell__header">
+      <ng-content select="[pageHeader]" />
+    </header>
+
+    <div class="page-shell__toolbar">
+      <ng-content select="[pageToolbar]" />
+    </div>
+  </div>
+
+  <div class="page-shell__body">
+    <ng-content />
+  </div>
+</div>

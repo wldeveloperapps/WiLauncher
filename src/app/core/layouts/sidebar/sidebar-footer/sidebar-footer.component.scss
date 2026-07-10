@@ -1,0 +1,32 @@
+:host {
+  display: block;
+  margin-top: auto;
+  width: 100%;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar-footer app-icon-button {
+  margin: 0 auto;
+}
+
+.sidebar-footer svg {
+  height: 20px;
+  width: 20px;
+}
+
+@media (max-width: 768px) {
+  :host {
+    flex: 0;
+    margin-top: 0;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+}

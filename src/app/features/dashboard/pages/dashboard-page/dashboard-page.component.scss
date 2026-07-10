@@ -1,8 +1,6 @@
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3);
+:host {
+  display: block;
+  height: 100%;
 }
 
 .dashboard__top {
@@ -460,12 +458,6 @@
 }
 
 @media (max-width: 768px) {
-  .dashboard {
-    gap: var(--space-2);
-    padding: var(--space-1);
-    padding-bottom: var(--space-2);
-  }
-
   .dashboard__title {
     font-size: 24px;
   }

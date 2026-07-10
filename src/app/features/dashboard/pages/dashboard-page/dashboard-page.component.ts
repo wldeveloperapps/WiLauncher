@@ -9,14 +9,15 @@ import {
   providerLabel,
 } from '../../../../core/models/machine.model';
 import { LocaleService } from '../../../../core/services/locale.service';
+import { PageShellComponent } from '../../../../core/layouts/page-shell/page-shell.component';
 import { SessionService } from '../../../../core/services/session.service';
 import { MachinesService } from '../../../../core/services/machines.service';
-import { MachineDetailDrawer } from '../../components/machine-detail-drawer/machine-detail-drawer';
-import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog/confirm-dialog';
-import { EnvChip } from '../../../../shared/ui/env-chip/env-chip';
-import { ProviderGlyph } from '../../../../shared/ui/provider-glyph/provider-glyph';
-import { Select, SelectOption } from '../../../../shared/ui/select/select';
-import { StatusBadge } from '../../../../shared/ui/status-badge/status-badge';
+import { MachineDetailDrawerComponent } from '../../components/machine-detail-drawer/machine-detail-drawer.component';
+import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { EnvChipComponent } from '../../../../shared/ui/env-chip/env-chip.component';
+import { ProviderGlyphComponent } from '../../../../shared/ui/provider-glyph/provider-glyph.component';
+import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
+import { StatusBadgeComponent } from '../../../../shared/ui/status-badge/status-badge.component';
 
 interface PendingAction {
   machine: Machine;
@@ -33,18 +34,19 @@ interface MachineGroup {
 @Component({
   selector: 'app-dashboard-page',
   imports: [
-    ConfirmDialog,
-    EnvChip,
-    MachineDetailDrawer,
-    ProviderGlyph,
-    Select,
-    StatusBadge,
+    ConfirmDialogComponent,
+    EnvChipComponent,
+    MachineDetailDrawerComponent,
+    PageShellComponent,
+    ProviderGlyphComponent,
+    SelectComponent,
+    StatusBadgeComponent,
     TranslocoPipe,
   ],
-  templateUrl: './dashboard-page.html',
-  styleUrl: './dashboard-page.scss',
+  templateUrl: './dashboard-page.component.html',
+  styleUrl: './dashboard-page.component.scss',
 })
-export class DashboardPage {
+export class DashboardPageComponent {
   private readonly transloco = inject(TranslocoService);
   protected readonly localeService = inject(LocaleService);
 

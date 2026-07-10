@@ -1,17 +1,15 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
-import { ThemeService } from '../../services/theme.service';
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoPipe],
-  templateUrl: './main-layout.html',
-  styleUrl: './main-layout.scss',
+  imports: [RouterOutlet, SidebarComponent],
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss',
 })
-export class MainLayout {
+export class MainLayoutComponent {
   protected readonly authService = inject(AuthService);
-  protected readonly themeService = inject(ThemeService);
 }

@@ -55,7 +55,7 @@ import { FormsModule } from '@angular/forms';
     }
   `,
 })
-export class Input {
+export class InputComponent {
   readonly label = input<string>('');
   readonly value = input.required<string>();
   readonly placeholder = input('');

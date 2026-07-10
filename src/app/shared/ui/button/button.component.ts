@@ -86,7 +86,7 @@ export type ButtonVariant = 'primary' | 'outline' | 'danger';
     }
   `,
 })
-export class Button {
+export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');
   readonly disabled = input(false);
   readonly loading = input(false);

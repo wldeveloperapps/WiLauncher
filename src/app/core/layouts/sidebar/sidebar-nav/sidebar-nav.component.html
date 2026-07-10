@@ -1,0 +1,14 @@
+<nav class="sidebar-nav">
+  @for (item of navService.items; track item.path) {
+    <a
+      [routerLink]="item.path"
+      routerLinkActive="sidebar-nav__link--active"
+      [routerLinkActiveOptions]="{ exact: item.exact }"
+      [attr.aria-label]="item.labelKey | transloco"
+      [attr.title]="item.labelKey | transloco"
+      class="sidebar-nav__link"
+    >
+      <app-sidebar-nav-icon [icon]="item.icon" />
+    </a>
+  }
+</nav>

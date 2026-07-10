@@ -1,16 +1,16 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { Button } from '../button/button';
-import { EnvChip } from '../env-chip/env-chip';
+import { ButtonComponent } from '../button/button.component';
+import { EnvChipComponent } from '../env-chip/env-chip.component';
 
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [Button, EnvChip, TranslocoPipe],
-  templateUrl: './confirm-dialog.html',
-  styleUrl: './confirm-dialog.scss',
+  imports: [ButtonComponent, EnvChipComponent, TranslocoPipe],
+  templateUrl: './confirm-dialog.component.html',
+  styleUrl: './confirm-dialog.component.scss',
 })
-export class ConfirmDialog {
+export class ConfirmDialogComponent {
   readonly open = input(false);
   readonly title = input('Confirmar accion');
   readonly message = input('');

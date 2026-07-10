@@ -66,7 +66,7 @@ export interface SelectOption {
     }
   `,
 })
-export class Select {
+export class SelectComponent {
   readonly label = input<string>('');
   readonly labelKey = input<string | undefined>(undefined);
   readonly value = input.required<string>();

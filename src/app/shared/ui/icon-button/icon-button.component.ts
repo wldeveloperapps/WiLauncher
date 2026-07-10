@@ -1,11 +1,17 @@
 import { Component, input, output } from '@angular/core';
 
+export type IconButtonSize = 'default' | 'sidebar';
+
 @Component({
   selector: 'app-icon-button',
+  host: {
+    '[class.icon-btn-host--sidebar]': 'size() === "sidebar"',
+  },
   template: `
     <button
       type="button"
       class="icon-btn"
+      [class.icon-btn--sidebar]="size() === 'sidebar'"
       [attr.aria-label]="label()"
       [disabled]="disabled()"
       (click)="clicked.emit()"
@@ -14,10 +20,14 @@ import { Component, input, output } from '@angular/core';
     </button>
   `,
   styles: `
+    :host {
+      display: inline-flex;
+    }
+
     .icon-btn {
       align-items: center;
       background: transparent;
-      border: 1px solid var(--border-default);
+      border: 1px solid transparent;
       border-radius: var(--radius-sm);
       color: var(--text-secondary);
       cursor: pointer;
@@ -31,9 +41,21 @@ import { Component, input, output } from '@angular/core';
       width: 36px;
     }
 
+    .icon-btn--sidebar {
+      height: 40px;
+      width: 40px;
+    }
+
     .icon-btn:hover:not(:disabled) {
-      background: var(--bg-elevated);
       color: var(--text-primary);
+    }
+
+    :host:not(.icon-btn-host--sidebar) .icon-btn {
+      border-color: var(--border-default);
+    }
+
+    :host:not(.icon-btn-host--sidebar) .icon-btn:hover:not(:disabled) {
+      background: var(--bg-elevated);
     }
 
     .icon-btn:disabled {
@@ -42,8 +64,9 @@ import { Component, input, output } from '@angular/core';
     }
   `,
 })
-export class IconButton {
+export class IconButtonComponent {
   readonly label = input.required<string>();
   readonly disabled = input(false);
+  readonly size = input<IconButtonSize>('default');
   readonly clicked = output<void>();
 }

@@ -12,4 +12,4 @@ import { Component } from '@angular/core';
     }
   `,
 })
-export class Card {}
+export class CardComponent {}

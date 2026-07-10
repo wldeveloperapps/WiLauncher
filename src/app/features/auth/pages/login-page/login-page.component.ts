@@ -12,10 +12,10 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-login-page',
   imports: [TranslocoPipe],
-  templateUrl: './login-page.html',
-  styleUrl: './login-page.scss',
+  templateUrl: './login-page.component.html',
+  styleUrl: './login-page.component.scss',
 })
-export class LoginPage {
+export class LoginPageComponent {
   private readonly router = inject(Router);
   protected readonly authService = inject(AuthService);
   protected readonly sessionService = inject(SessionService);

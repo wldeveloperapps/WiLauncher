@@ -52,7 +52,7 @@ import { Component, input } from '@angular/core';
     }
   `,
 })
-export class MetricCard {
+export class MetricCardComponent {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly variant = input<'running' | 'stopped' | 'error' | 'default'>('default');

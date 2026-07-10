@@ -66,7 +66,7 @@ import { MachineStatus, statusLabel } from '../../../core/models/machine.model';
     }
   `,
 })
-export class StatusBadge {
+export class StatusBadgeComponent {
   readonly status = input.required<MachineStatus>();
 
   protected statusLabel = statusLabel;

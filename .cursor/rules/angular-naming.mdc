@@ -1,0 +1,25 @@
+# Nomenclatura Angular (componentes)
+
+## Convención obligatoria
+
+| Elemento | Patrón | Ejemplo |
+|---|---|---|
+| Archivo TS | `*.component.ts` | `sidebar-nav-icon.component.ts` |
+| Template | `*.component.html` | `sidebar-nav-icon.component.html` |
+| Estilos | `*.component.scss` | `sidebar-nav-icon.component.scss` |
+| Clase | sufijo `Component` | `SidebarNavIconComponent` |
+| Selector | prefijo `app-` | `app-sidebar-nav-icon` |
+| Carpeta | kebab-case | `sidebar-nav-icon/` |
+
+## Páginas de ruta
+
+Los componentes de página conservan el descriptor `Page` en la clase: `LoginPageComponent`, `DashboardPageComponent`.
+
+## Servicios y modelos
+
+- Servicios: sufijo `Service` (`AuthService`)
+- Modelos: sin sufijo de tipo (`Machine`, `NavItemConfig`)
+
+## Generación
+
+Usar `ng generate component` — el schematic en `angular.json` ya incluye `"type": "component"`.

@@ -1,5 +1,5 @@
-<section class="dashboard">
-  <header class="dashboard__top">
+<app-page-shell>
+  <header pageHeader class="dashboard__top">
     <div class="dashboard__title-block">
       <h1 class="dashboard__title">{{ 'dashboard.pageTitle' | transloco }}</h1>
       <p class="dashboard__subtitle">{{ 'dashboard.pageSubtitle' | transloco }}</p>
@@ -29,7 +29,7 @@
     </div>
   </header>
 
-  <div class="dashboard__toolbar">
+  <div pageToolbar class="dashboard__toolbar">
     <button
       type="button"
       class="dashboard__filters-toggle"
@@ -305,4 +305,4 @@
     (confirmed)="onConfirm()"
     (cancelled)="closeConfirm()"
   />
-</section>
+</app-page-shell>

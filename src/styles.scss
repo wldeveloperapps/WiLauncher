@@ -91,12 +91,14 @@
 
 html {
   font-size: 16px;
+  height: 100%;
 }
 
 body {
   background: var(--bg-base);
   color: var(--text-primary);
   font-family: var(--font-ui);
+  height: 100%;
   line-height: 1.5;
   margin: 0;
   min-height: 100dvh;

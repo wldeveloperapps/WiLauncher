@@ -44,7 +44,7 @@ import { Provider, providerInitial, providerLabel } from '../../../core/models/m
     }
   `,
 })
-export class ProviderGlyph {
+export class ProviderGlyphComponent {
   readonly provider = input.required<Provider>();
 
   protected providerLabel = providerLabel;

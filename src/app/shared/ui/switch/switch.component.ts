@@ -63,7 +63,7 @@ import { Component, input, output } from '@angular/core';
     }
   `,
 })
-export class Switch {
+export class SwitchComponent {
   readonly checked = input(false);
   readonly label = input('');
   readonly toggled = output<void>();
