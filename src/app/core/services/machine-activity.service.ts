@@ -1,16 +1,15 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
-import { getMockMachineActivity } from '../data/mock-machine-activity';
-import { Machine } from '../models/machine.model';
+import { Machine, Provider } from '../models/machine.model';
 import { MachineActivityLog } from '../models/machine-activity.model';
-import { environment } from '../../../environments/environment';
 
 interface MachineActivityInput {
   machineId: string;
-  provider: Machine['provider'];
+  provider: Provider;
   subscriptionId: string;
   resourceGroup: string;
+  region: string;
   azureResourceId?: string;
 }
 
@@ -36,12 +35,9 @@ export class MachineActivityService {
   private readonly cache = signal<Record<string, MachineActivityLog[]>>({});
   private readonly loadingKeys = signal<Record<string, boolean>>({});
   private readonly errorByKey = signal<Record<string, string | null>>({});
+  private readonly loadedKeys = signal<Record<string, true>>({});
 
   getActivity(machine: Machine): MachineActivityLog[] {
-    if (environment.useMockMachines) {
-      return this.getMockActivity(machine);
-    }
-
     this.revision();
     return this.cache()[this.machineKey(machine)] ?? [];
   }
@@ -55,12 +51,8 @@ export class MachineActivityService {
   }
 
   async loadActivity(machine: Machine, options: { force?: boolean } = {}): Promise<void> {
-    if (environment.useMockMachines) {
-      return;
-    }
-
     const key = this.machineKey(machine);
-    if (!options.force && key in this.cache()) {
+    if (!options.force && this.loadedKeys()[key]) {
       return;
     }
     if (this.loadingKeys()[key]) {
@@ -80,6 +72,7 @@ export class MachineActivityService {
         provider: machine.provider,
         subscriptionId: machine.subscriptionId ?? '',
         resourceGroup: machine.resourceGroup ?? '',
+        region: machine.region ?? '',
         azureResourceId: machine.azureResourceId,
       });
 
@@ -98,9 +91,10 @@ export class MachineActivityService {
     } catch (error) {
       this.errorByKey.update((current) => ({
         ...current,
-        [key]: this.toFriendlyError(error),
+        [key]: this.toFriendlyError(error, machine.provider),
       }));
     } finally {
+      this.loadedKeys.update((current) => ({ ...current, [key]: true }));
       this.loadingKeys.update((current) => ({ ...current, [key]: false }));
     }
   }
@@ -109,29 +103,21 @@ export class MachineActivityService {
     this.cache.set({});
     this.loadingKeys.set({});
     this.errorByKey.set({});
+    this.loadedKeys.set({});
     this.revision.update((value) => value + 1);
   }
 
-  private getMockActivity(machine: Machine): MachineActivityLog[] {
-    const keys = [machine.machineId, machine.id].filter(Boolean) as string[];
-    for (const key of keys) {
-      const logs = getMockMachineActivity(key);
-      if (logs.length > 0) {
-        return logs;
-      }
-    }
-
-    return getMockMachineActivity(machine.id);
-  }
-
   private machineKey(machine: Machine): string {
-    return machine.machineId ?? machine.id;
+    return `${machine.provider}:${machine.machineId ?? machine.id}`;
   }
 
-  private toFriendlyError(error: unknown): string {
+  private toFriendlyError(error: unknown, provider: Provider): string {
     if (error instanceof Error) {
-      return `No se pudo cargar la actividad de Azure. ${error.message}`;
+      if (error.message.includes('unimplemented')) {
+        return `La actividad para ${provider.toUpperCase()} aun no esta disponible.`;
+      }
+      return `No se pudo cargar la actividad. ${error.message}`;
     }
-    return 'No se pudo cargar la actividad de Azure.';
+    return 'No se pudo cargar la actividad.';
   }
 }

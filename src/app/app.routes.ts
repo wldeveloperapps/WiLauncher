@@ -28,18 +28,6 @@ export const routes: Routes = [
             (m) => m.DashboardPageComponent,
           ),
       },
-      // {
-      //   path: 'audit',
-      //   data: {
-      //     nav: {
-      //       labelKey: 'layout.navAudit',
-      //       icon: 'audit',
-      //       order: 2,
-      //     } satisfies NavItemConfig,
-      //   },
-      //   loadComponent: () =>
-      //     import('./features/audit/pages/audit-page/audit-page.component').then((m) => m.AuditPageComponent),
-      // },
     ],
   },
   {

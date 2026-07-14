@@ -56,9 +56,13 @@ export class MachineDetailDrawerComponent {
       }
 
       const machine = this.machine();
-      if (machine) {
-        void this.activityService.loadActivity(machine);
+      if (!machine) {
+        return;
       }
+
+      const machineKey = `${machine.provider}:${machine.machineId ?? machine.id}`;
+      void machineKey;
+      void this.activityService.loadActivity(machine);
     });
   }
 

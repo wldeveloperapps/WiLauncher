@@ -13,6 +13,7 @@ import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 import { routes } from './app.routes';
 
 let emulatorsConnected = false;
+let functionsEmulatorConnected = false;
 
 function connectFirebaseEmulators(): void {
   if (emulatorsConnected || environment.production || !environment.useEmulators) {
@@ -20,6 +21,13 @@ function connectFirebaseEmulators(): void {
   }
 
   connectAuthEmulator(getAuth(), environment.emulators.auth, { disableWarnings: true });
+  emulatorsConnected = true;
+}
+
+function connectFunctionsEmulatorIfNeeded(): void {
+  if (functionsEmulatorConnected || environment.production || !environment.useFunctionsEmulator) {
+    return;
+  }
 
   connectFunctionsEmulator(
     getFunctions(getApp(), 'europe-west1'),
@@ -27,7 +35,7 @@ function connectFirebaseEmulators(): void {
     environment.emulators.functionsPort,
   );
 
-  emulatorsConnected = true;
+  functionsEmulatorConnected = true;
 }
 
 export const appConfig: ApplicationConfig = {
@@ -41,7 +49,11 @@ export const appConfig: ApplicationConfig = {
       connectFirebaseEmulators();
       return auth;
     }),
-    provideFunctions(() => getFunctions(getApp(), 'europe-west1')),
+    provideFunctions(() => {
+      const functions = getFunctions(getApp(), 'europe-west1');
+      connectFunctionsEmulatorIfNeeded();
+      return functions;
+    }),
     provideHttpClient(),
     provideAnalytics(() => getAnalytics()),
     provideTransloco({

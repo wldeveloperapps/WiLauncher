@@ -16,18 +16,12 @@
     "tenantWarning": "Pending configuration: set auth.microsoftTenantId in environments when you receive Azure/Entra ID details.",
     "secureAccess": "secure access",
     "security": "WiLauncher never displays or stores cloud credentials. It only orchestrates actions through secure federated connections.",
-    "langToggleAria": "Switch language to {{lang}}",
-    "devTitle": "Development mode",
-    "devHint": "Sign in with a Firebase test user (Email/Password). The selected role applies in the UI.",
-    "devRole": "Test role",
-    "devButton": "Sign in (development)"
+    "langToggleAria": "Switch language to {{lang}}"
   },
   "layout": {
     "home": "WiLauncher home",
     "navInventory": "Inventory",
-    "navAudit": "Audit",
-    "logout": "Sign out",
-    "devRole": "Test role"
+    "logout": "Sign out"
   },
   "dashboard": {
     "pageTitle": "Machine inventory",
@@ -60,8 +54,8 @@
     "cpu": "CPU",
     "privateIp": "Private IP",
     "recentActivity": "Recent activity",
-    "noActivity": "No activity recorded in Azure.",
-    "loadingActivity": "Loading Azure activity...",
+    "noActivity": "No activity recorded.",
+    "loadingActivity": "Loading activity...",
     "showMoreActivity": "Show {{count}} more",
     "showLessActivity": "Show less",
     "yesterday": "Yesterday"
@@ -83,21 +77,5 @@
     "prodConfirmStart": "Start production",
     "prodConfirmStop": "Shut down production",
     "auditNote": "This action will be recorded in the audit log with your user and timestamp."
-  },
-  "audit": {
-    "pageTitle": "Audit log",
-    "pageSubtitle": "Operations history · multi-cloud",
-    "loading": "Loading audit log...",
-    "emptyTitle": "// no_audit_entries",
-    "emptyMessage": "No audit entries yet.",
-    "timestamp": "Timestamp",
-    "action": "Action",
-    "machine": "Machine",
-    "provider": "Provider",
-    "environment": "Environment",
-    "user": "User",
-    "role": "Role",
-    "startAction": "Start",
-    "stopAction": "Stop"
   }
 }

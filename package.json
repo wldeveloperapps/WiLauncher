@@ -8,8 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy": "ng deploy",
-    "emulators": "firebase emulators:start --only auth,functions",
-    "emulators:full": "firebase emulators:start --only auth,functions,firestore"
+    "emulators": "firebase emulators:start --only auth,functions"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

@@ -63,31 +63,6 @@
         <p class="login-panel__error">{{ authService.errorMessage() }}</p>
       }
 
-      @if (authService.isDevLoginEnabled()) {
-        <div class="login-panel__dev">
-          <p class="login-panel__dev-label">{{ 'login.devTitle' | transloco }}</p>
-          <p class="login-panel__dev-hint">{{ 'login.devHint' | transloco }}</p>
-
-          <label class="login-panel__dev-field">
-            <span>{{ 'login.devRole' | transloco }}</span>
-            <select [value]="devRole()" (change)="onDevRoleChange($event)">
-              @for (role of devRoles; track role) {
-                <option [value]="role">{{ role }}</option>
-              }
-            </select>
-          </label>
-
-          <button
-            type="button"
-            class="login-panel__dev-button"
-            [disabled]="authService.isBusy()"
-            (click)="signInWithDev()"
-          >
-            {{ 'login.devButton' | transloco }}
-          </button>
-        </div>
-      }
-
       <div class="login-panel__divider" role="separator">
         <span>{{ 'login.secureAccess' | transloco }}</span>
       </div>

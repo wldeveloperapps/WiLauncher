@@ -117,6 +117,10 @@
     </div>
   </div>
 
+  @if (machinesService.warningMessage()) {
+    <p class="dashboard__warning">{{ machinesService.warningMessage() }}</p>
+  }
+
   @if (machinesService.errorMessage()) {
     <p class="dashboard__error">{{ machinesService.errorMessage() }}</p>
   }

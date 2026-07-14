@@ -3,21 +3,6 @@ import {HttpsError, type CallableRequest} from "firebase-functions/v2/https";
 export const ROLES = ["viewer", "operator", "admin"] as const;
 export type UserRole = (typeof ROLES)[number];
 
-const DEV_FIREBASE_PROJECT_IDS = new Set(["wilauncher-9e648"]);
-
-/**
- * Whether the deployment allows dev-only role management.
- * @return {boolean} True for emulators or the dev Firebase project.
- */
-export function isDevDeployment(): boolean {
-  if (process.env.FUNCTIONS_EMULATOR === "true") {
-    return true;
-  }
-
-  const projectId = process.env.GCLOUD_PROJECT ?? process.env.GCP_PROJECT ?? "";
-  return DEV_FIREBASE_PROJECT_IDS.has(projectId);
-}
-
 export interface RequestUserContext {
   uid: string;
   email: string | null;
@@ -36,39 +21,11 @@ export async function requireAuthenticatedUser(
     throw new HttpsError("unauthenticated", "Debes iniciar sesion.");
   }
 
-  const role = await resolveRequestRole(
-    request.auth.uid,
-    request.auth.token.role,
-  );
-
   return {
     uid: request.auth.uid,
     email: request.auth.token.email ?? null,
-    role,
+    role: resolveUserRole(request.auth.token.role),
   };
-}
-
-/**
- * Resolves the effective role for a request.
- * @param {string} uid Firebase Auth UID (unused until Firestore roles exist).
- * @param {unknown} rawClaimRole Role from custom claims.
- * @return {Promise<UserRole>} Effective role.
- */
-export async function resolveRequestRole(
-  uid: string,
-  rawClaimRole: unknown,
-): Promise<UserRole> {
-  void uid;
-  const claimRole = resolveUserRole(rawClaimRole);
-  if (claimRole !== "viewer") {
-    return claimRole;
-  }
-
-  if (isDevDeployment()) {
-    return "operator";
-  }
-
-  return "viewer";
 }
 
 /**
@@ -78,7 +35,9 @@ export async function resolveRequestRole(
  */
 export function resolveUserRole(rawRole: unknown): UserRole {
   if (typeof rawRole !== "string") {
-    return "viewer";
+    // Interim default for authenticated ops users until custom claims
+    // are assigned per account in Firebase Auth.
+    return "operator";
   }
 
   const normalizedRole = rawRole.toLowerCase() as UserRole;
@@ -86,28 +45,7 @@ export function resolveUserRole(rawRole: unknown): UserRole {
     return normalizedRole;
   }
 
-  return "viewer";
-}
-
-/**
- * Parses dev role payload for emulator-only callable.
- * @param {unknown} data Raw callable payload.
- * @return {UserRole} Parsed role.
- */
-export function parseDevRole(data: unknown): UserRole {
-  if (!data || typeof data !== "object") {
-    throw new HttpsError("invalid-argument", "Debes indicar un rol.");
-  }
-
-  const role = (data as {role?: string}).role?.trim().toLowerCase() as UserRole;
-  if (!role || !ROLES.includes(role)) {
-    throw new HttpsError(
-      "invalid-argument",
-      "role debe ser viewer, operator o admin.",
-    );
-  }
-
-  return role;
+  return "operator";
 }
 
 /**

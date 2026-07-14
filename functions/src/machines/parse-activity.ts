@@ -6,6 +6,7 @@ export interface MachineActivityInput {
   provider: Provider;
   subscriptionId: string;
   resourceGroup: string;
+  region: string;
   azureResourceId?: string;
 }
 
@@ -24,6 +25,7 @@ export function parseMachineActivityInput(data: unknown): MachineActivityInput {
   const provider = candidate.provider?.trim().toLowerCase();
   const subscriptionId = candidate.subscriptionId?.trim();
   const resourceGroup = candidate.resourceGroup?.trim();
+  const region = candidate.region?.trim();
   const azureResourceId = candidate.azureResourceId?.trim();
 
   if (!machineId || !provider) {
@@ -47,11 +49,19 @@ export function parseMachineActivityInput(data: unknown): MachineActivityInput {
     );
   }
 
+  if (provider === "aws" && !region) {
+    throw new HttpsError(
+      "invalid-argument",
+      "region es obligatorio para AWS.",
+    );
+  }
+
   return {
     machineId,
     provider: provider as Provider,
     subscriptionId: subscriptionId ?? "",
     resourceGroup: resourceGroup ?? "",
+    region: region ?? "",
     azureResourceId: azureResourceId || undefined,
   };
 }

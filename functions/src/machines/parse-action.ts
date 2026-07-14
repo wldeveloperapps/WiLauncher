@@ -7,6 +7,7 @@ export interface MachineActionInput {
   environment: string;
   subscriptionId: string;
   resourceGroup: string;
+  region: string;
 }
 
 /**
@@ -25,6 +26,7 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
   const environment = candidate.environment?.trim();
   const subscriptionId = candidate.subscriptionId?.trim();
   const resourceGroup = candidate.resourceGroup?.trim();
+  const region = candidate.region?.trim();
 
   if (!machineId || !provider || !environment) {
     throw new HttpsError(
@@ -36,7 +38,7 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
   if (!PROVIDERS.includes(provider as Provider)) {
     throw new HttpsError(
       "invalid-argument",
-      "provider debe ser aws, azure, gcp u oci.",
+      "provider debe ser aws o azure.",
     );
   }
 
@@ -47,11 +49,19 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
     );
   }
 
+  if (provider === "aws" && !region) {
+    throw new HttpsError(
+      "invalid-argument",
+      "region es obligatorio para AWS.",
+    );
+  }
+
   return {
     machineId,
     provider: provider as Provider,
     environment,
     subscriptionId: subscriptionId ?? "",
     resourceGroup: resourceGroup ?? "",
+    region: region ?? "",
   };
 }

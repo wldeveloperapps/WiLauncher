@@ -234,6 +234,15 @@
   padding: var(--space-1);
 }
 
+.dashboard__warning {
+  background: color-mix(in srgb, var(--color-transitioning) 10%, transparent);
+  border: 1px solid var(--color-transitioning);
+  border-radius: var(--radius-sm);
+  color: var(--color-transitioning);
+  margin: 0;
+  padding: var(--space-1);
+}
+
 .dashboard__status {
   color: var(--text-secondary);
   margin: 0;

@@ -1,4 +1,4 @@
-import {toFirestoreDocId} from "./doc-id.js";
+import {toResourceId} from "../machines/resource-id.js";
 import {listAzureSubscriptions} from "./subscriptions.js";
 import {
   listAzureVirtualMachines,
@@ -26,7 +26,7 @@ export interface AzureInventoryResult {
 }
 
 /**
- * Fetches Azure VM inventory without persisting to Firestore.
+ * Fetches Azure VM inventory from configured subscriptions.
  * @return {Promise<AzureInventoryResult>} Live inventory snapshot.
  */
 export async function listAzureInventory(): Promise<AzureInventoryResult> {
@@ -57,7 +57,7 @@ export async function listAzureInventory(): Promise<AzureInventoryResult> {
  */
 function toApiMachine(machine: AzureVirtualMachineSummary): ApiMachine {
   return {
-    id: toFirestoreDocId(machine.azureResourceId),
+    id: toResourceId(machine.azureResourceId),
     machineId: machine.machineId,
     name: machine.name,
     provider: machine.provider,

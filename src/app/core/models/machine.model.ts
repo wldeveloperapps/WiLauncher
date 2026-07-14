@@ -19,6 +19,7 @@ export interface Machine {
   subscriptionId?: string;
   resourceGroup?: string;
   azureResourceId?: string;
+  awsResourceId?: string;
   cpuUsage?: number;
   updatedAt?: Date | null;
   updatedBy?: string;

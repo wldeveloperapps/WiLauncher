@@ -16,18 +16,12 @@
     "tenantWarning": "Configuración pendiente: define auth.microsoftTenantId en los entornos cuando recibas los datos de Azure/Entra ID.",
     "secureAccess": "acceso seguro",
     "security": "WiLauncher nunca muestra ni almacena credenciales cloud. Solo orquesta acciones mediante conexiones federadas seguras.",
-    "langToggleAria": "Cambiar idioma a {{lang}}",
-    "devTitle": "Modo desarrollo",
-    "devHint": "Entra con usuario de prueba en Firebase (Email/Password). El rol seleccionado se aplica en la interfaz.",
-    "devRole": "Rol de prueba",
-    "devButton": "Entrar en modo desarrollo"
+    "langToggleAria": "Cambiar idioma a {{lang}}"
   },
   "layout": {
     "home": "WiLauncher inicio",
     "navInventory": "Inventario",
-    "navAudit": "Auditoría",
-    "logout": "Cerrar sesión",
-    "devRole": "Rol de prueba"
+    "logout": "Cerrar sesión"
   },
   "dashboard": {
     "pageTitle": "Inventario de máquinas",
@@ -60,8 +54,8 @@
     "cpu": "CPU",
     "privateIp": "IP privada",
     "recentActivity": "Actividad reciente",
-    "noActivity": "Sin actividad registrada en Azure.",
-    "loadingActivity": "Cargando actividad de Azure...",
+    "noActivity": "Sin actividad registrada.",
+    "loadingActivity": "Cargando actividad...",
     "showMoreActivity": "Ver {{count}} más",
     "showLessActivity": "Ver menos",
     "yesterday": "Ayer"
@@ -83,21 +77,5 @@
     "prodConfirmStart": "Arrancar producción",
     "prodConfirmStop": "Apagar producción",
     "auditNote": "Esta acción quedará registrada en auditoría con tu usuario y hora."
-  },
-  "audit": {
-    "pageTitle": "Registro de auditoría",
-    "pageSubtitle": "Historial de operaciones · multi-cloud",
-    "loading": "Cargando auditoría...",
-    "emptyTitle": "// no_audit_entries",
-    "emptyMessage": "No hay registros de auditoría todavía.",
-    "timestamp": "Timestamp",
-    "action": "Acción",
-    "machine": "Máquina",
-    "provider": "Proveedor",
-    "environment": "Entorno",
-    "user": "Usuario",
-    "role": "Rol",
-    "startAction": "Arranque",
-    "stopAction": "Apagado"
   }
 }

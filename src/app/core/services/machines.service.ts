@@ -1,9 +1,7 @@
-import { effect, inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
-import { MOCK_MACHINES } from '../data/mock-machines';
 import { Machine, MachineStatus, Provider } from '../models/machine.model';
-import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { MachineActivityService } from './machine-activity.service';
 
@@ -13,6 +11,7 @@ interface MachineActionInput {
   environment: string;
   subscriptionId: string;
   resourceGroup: string;
+  region: string;
 }
 
 interface MachineActionResponse {
@@ -25,25 +24,24 @@ interface ListMachinesResponse {
   machines: Array<Record<string, unknown>>;
   subscriptions: number;
   syncedAt: string;
+  providerErrors?: Array<{ provider: Provider; message: string }>;
 }
 
 @Injectable({
   providedIn: 'root',
 })
-export class MachinesService implements OnDestroy {
+export class MachinesService {
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
   private readonly activityService = inject(MachineActivityService);
-  private readonly useMockMachines = environment.useMockMachines;
 
   readonly machines = signal<Machine[]>([]);
   readonly isLoading = signal(true);
   readonly isRefreshing = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly warningMessage = signal<string | null>(null);
   readonly actionInProgress = signal<string | null>(null);
   readonly lastSyncedAt = signal<string | null>(null);
-
-  private mockTransitionTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
@@ -51,16 +49,13 @@ export class MachinesService implements OnDestroy {
       if (user) {
         void this.loadMachines();
       } else {
-        this.clearMockTransitionTimer();
         this.machines.set([]);
         this.lastSyncedAt.set(null);
+        this.errorMessage.set(null);
+        this.warningMessage.set(null);
         this.isLoading.set(false);
       }
     });
-  }
-
-  ngOnDestroy(): void {
-    this.clearMockTransitionTimer();
   }
 
   async refresh(): Promise<void> {
@@ -72,18 +67,10 @@ export class MachinesService implements OnDestroy {
   }
 
   async startMachine(machine: Machine): Promise<void> {
-    if (this.useMockMachines) {
-      await this.executeMockAction(machine, 'start');
-      return;
-    }
     await this.executeAction(machine, 'startMachine');
   }
 
   async stopMachine(machine: Machine): Promise<void> {
-    if (this.useMockMachines) {
-      await this.executeMockAction(machine, 'stop');
-      return;
-    }
     await this.executeAction(machine, 'stopMachine');
   }
 
@@ -97,17 +84,7 @@ export class MachinesService implements OnDestroy {
     }
 
     this.errorMessage.set(null);
-
-    if (this.useMockMachines) {
-      const machines = [...MOCK_MACHINES].sort((a, b) =>
-        this.machineSortKey(a).localeCompare(this.machineSortKey(b)),
-      );
-      this.machines.set(machines);
-      this.lastSyncedAt.set(null);
-      this.isLoading.set(false);
-      this.isRefreshing.set(false);
-      return;
-    }
+    this.warningMessage.set(null);
 
     try {
       const callable = httpsCallable<void, ListMachinesResponse>(this.functions, 'listMachines');
@@ -118,57 +95,12 @@ export class MachinesService implements OnDestroy {
 
       this.machines.set(machines);
       this.lastSyncedAt.set(result.data.syncedAt);
+      this.applyProviderFeedback(machines.length, result.data.providerErrors);
     } catch (error) {
       this.errorMessage.set(this.toListError(error));
     } finally {
       this.isLoading.set(false);
       this.isRefreshing.set(false);
-    }
-  }
-
-  private async executeMockAction(machine: Machine, action: 'start' | 'stop'): Promise<void> {
-    const machineId = machine.machineId ?? machine.id;
-    this.actionInProgress.set(machineId);
-    this.errorMessage.set(null);
-    this.clearMockTransitionTimer();
-
-    const transitionStatus: MachineStatus = action === 'start' ? 'starting' : 'stopping';
-    const finalStatus: MachineStatus = action === 'start' ? 'running' : 'stopped';
-
-    this.updateMockMachine(machineId, {
-      status: transitionStatus,
-      updatedAt: new Date(),
-      updatedBy: this.authService.currentUser()?.email ?? 'dev@wiloc.local',
-    });
-
-    await new Promise<void>((resolve) => {
-      this.mockTransitionTimer = setTimeout(() => {
-        this.updateMockMachine(machineId, {
-          status: finalStatus,
-          updatedAt: new Date(),
-        });
-        this.mockTransitionTimer = null;
-        resolve();
-      }, 1500);
-    });
-
-    this.actionInProgress.set(null);
-  }
-
-  private updateMockMachine(machineId: string, patch: Partial<Machine>): void {
-    this.machines.update((machines) =>
-      machines.map((machine) => {
-        const id = machine.machineId ?? machine.id;
-        if (id !== machineId) return machine;
-        return { ...machine, ...patch };
-      }),
-    );
-  }
-
-  private clearMockTransitionTimer(): void {
-    if (this.mockTransitionTimer) {
-      clearTimeout(this.mockTransitionTimer);
-      this.mockTransitionTimer = null;
     }
   }
 
@@ -179,6 +111,7 @@ export class MachinesService implements OnDestroy {
     const actionKey = machine.machineId ?? machine.id;
     this.actionInProgress.set(actionKey);
     this.errorMessage.set(null);
+    this.warningMessage.set(null);
 
     try {
       const callable = httpsCallable<MachineActionInput, MachineActionResponse>(
@@ -191,6 +124,7 @@ export class MachinesService implements OnDestroy {
         environment: machine.environment,
         subscriptionId: machine.subscriptionId ?? '',
         resourceGroup: machine.resourceGroup ?? '',
+        region: machine.region ?? '',
       });
 
       this.machines.update((machines) =>
@@ -228,10 +162,12 @@ export class MachinesService implements OnDestroy {
       environment: typeof data['environment'] === 'string' ? data['environment'] : 'DEV',
       status: (data['status'] as MachineStatus) ?? 'stopped',
       region: typeof data['region'] === 'string' ? data['region'] : undefined,
+      ipAddress: typeof data['ipAddress'] === 'string' ? data['ipAddress'] : undefined,
       instanceType: typeof data['instanceType'] === 'string' ? data['instanceType'] : undefined,
       subscriptionId: typeof data['subscriptionId'] === 'string' ? data['subscriptionId'] : undefined,
       resourceGroup: typeof data['resourceGroup'] === 'string' ? data['resourceGroup'] : undefined,
       azureResourceId: typeof data['azureResourceId'] === 'string' ? data['azureResourceId'] : undefined,
+      awsResourceId: typeof data['awsResourceId'] === 'string' ? data['awsResourceId'] : undefined,
       updatedAt: new Date(),
     };
   }
@@ -240,13 +176,48 @@ export class MachinesService implements OnDestroy {
     return machine.name ?? machine.machineId ?? machine.id;
   }
 
+  private applyProviderFeedback(
+    machineCount: number,
+    providerErrors: ListMachinesResponse['providerErrors'],
+  ): void {
+    if (!providerErrors?.length) {
+      this.errorMessage.set(null);
+      this.warningMessage.set(null);
+      return;
+    }
+
+    const message = providerErrors
+      .map((entry) => `${entry.provider.toUpperCase()}: ${entry.message}`)
+      .join(' ');
+
+    if (machineCount > 0) {
+      this.warningMessage.set(message);
+      this.errorMessage.set(null);
+      return;
+    }
+
+    this.errorMessage.set(message);
+    this.warningMessage.set(null);
+  }
+
   private toListError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('permission-denied')) {
+        if (error.message.includes('AWS') || error.message.includes('ec2:')) {
+          return error.message.replace(/^.*permission-denied[:\s]*/i, '').trim() ||
+            'Las credenciales AWS no tienen permiso para listar instancias EC2.';
+        }
         return 'No tienes permisos para consultar el inventario.';
+      }
+      if (error.message.includes('failed-precondition')) {
+        return error.message.replace(/^.*failed-precondition[:\s]*/i, '').trim() ||
+          'La configuracion de AWS no es valida.';
       }
       if (error.message.includes('unauthenticated')) {
         return 'Debes iniciar sesion para consultar el inventario.';
+      }
+      if (error.message.includes('INTERNAL')) {
+        return 'No se pudo cargar el inventario. Revisa la configuracion del proveedor cloud.';
       }
       return `No se pudo cargar el inventario. ${error.message}`;
     }
@@ -256,7 +227,7 @@ export class MachinesService implements OnDestroy {
   private toFriendlyError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('permission-denied')) {
-        return 'No tienes permisos para realizar esta accion.';
+        return 'No tienes permisos de operador para arrancar o apagar maquinas.';
       }
       if (error.message.includes('unimplemented')) {
         return 'Esta accion aun no esta disponible para ese proveedor.';

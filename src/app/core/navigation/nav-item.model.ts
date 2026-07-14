@@ -1,4 +1,4 @@
-export type NavIcon = 'grid' | 'audit';
+export type NavIcon = 'grid';
 
 export interface NavItemConfig {
   labelKey: string;

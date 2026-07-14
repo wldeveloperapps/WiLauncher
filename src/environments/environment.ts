@@ -2,7 +2,6 @@ import { Environment } from './environment.model';
 
 export const environment: Environment = {
   production: false,
-  useMockMachines: false,
   firebase: {
     apiKey: 'AIzaSyAwnL3ROJDFj7u3yR0CRxJ73W8KRRQo6v8',
     authDomain: 'wilauncher-9e648.firebaseapp.com',
@@ -13,22 +12,13 @@ export const environment: Environment = {
     measurementId: 'G-SD54BMYGC2',
   },
   useEmulators: false,
-  useFirestoreEmulator: false,
+  useFunctionsEmulator: true,
   emulators: {
     auth: 'http://127.0.0.1:9099',
-    firestoreHost: '127.0.0.1',
-    firestorePort: 8080,
     functionsHost: '127.0.0.1',
     functionsPort: 5001,
   },
   auth: {
     microsoftTenantId: 'organizations',
-    devLogin: {
-      enabled: false,
-      email: 'dev@wiloc.local',
-      password: 'dev-wilauncher',
-      displayName: 'Dev Operator',
-      defaultRole: 'operator',
-    },
   },
 };

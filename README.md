@@ -49,9 +49,8 @@ La aplicación se construirá utilizando:
 
 - Angular 22
 - Firebase Authentication
-- Firestore
 - Firebase Hosting
-- Firebase Functions o backend equivalente para la integración con los proveedores cloud
+- Firebase Functions para la integración con los proveedores cloud
 
 ## Arquitectura de alto nivel
 
