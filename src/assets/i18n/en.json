@@ -47,6 +47,8 @@
     "groupBy": "Group by",
     "results": "{{filtered}} / {{total}} results",
     "refresh": "Refresh inventory",
+    "refreshShort": "Refresh",
+    "lastSynced": "Sync {{time}}",
     "filters": "Filters",
     "closeDetail": "Close machine details",
     "region": "Region",
@@ -56,6 +58,7 @@
     "recentActivity": "Recent activity",
     "noActivity": "No activity recorded.",
     "loadingActivity": "Loading activity...",
+    "refreshActivity": "Refresh activity",
     "showMoreActivity": "Show {{count}} more",
     "showLessActivity": "Show less",
     "yesterday": "Yesterday"

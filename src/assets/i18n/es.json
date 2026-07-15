@@ -47,6 +47,8 @@
     "groupBy": "Agrupar",
     "results": "{{filtered}} / {{total}} resultados",
     "refresh": "Actualizar inventario",
+    "refreshShort": "Actualizar",
+    "lastSynced": "Sync {{time}}",
     "filters": "Filtros",
     "closeDetail": "Cerrar detalle de máquina",
     "region": "Región",
@@ -56,6 +58,7 @@
     "recentActivity": "Actividad reciente",
     "noActivity": "Sin actividad registrada.",
     "loadingActivity": "Cargando actividad...",
+    "refreshActivity": "Actualizar actividad",
     "showMoreActivity": "Ver {{count}} más",
     "showLessActivity": "Ver menos",
     "yesterday": "Ayer"

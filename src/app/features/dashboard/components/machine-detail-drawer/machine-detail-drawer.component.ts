@@ -44,6 +44,11 @@ export class MachineDetailDrawerComponent {
     return machine ? this.activityService.isLoading(machine) : false;
   });
 
+  protected readonly activityLoaded = computed(() => {
+    const machine = this.machine();
+    return machine ? this.activityService.isLoaded(machine) : false;
+  });
+
   protected readonly activityError = computed(() => {
     const machine = this.machine();
     return machine ? this.activityService.getError(machine) : null;
@@ -113,6 +118,15 @@ export class MachineDetailDrawerComponent {
   protected onStop(machine: Machine, event: Event): void {
     event.stopPropagation();
     this.stopRequested.emit(machine);
+  }
+
+  protected refreshActivity(): void {
+    const machine = this.machine();
+    if (!machine || this.activityLoading()) {
+      return;
+    }
+
+    void this.activityService.loadActivity(machine, { force: true });
   }
 
   private formatTime(timestamp: Date): string {

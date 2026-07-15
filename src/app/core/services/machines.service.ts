@@ -1,7 +1,7 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
-import { Machine, MachineStatus, Provider } from '../models/machine.model';
+import { isTransitioning, Machine, MachineStatus, Provider } from '../models/machine.model';
 import { AuthService } from './auth.service';
 import { MachineActivityService } from './machine-activity.service';
 
@@ -27,6 +27,15 @@ interface ListMachinesResponse {
   providerErrors?: Array<{ provider: Provider; message: string }>;
 }
 
+/** Poll intervals while machines are starting/stopping (ms). */
+const TRANSITION_POLL_MS = [5_000, 10_000, 15_000, 30_000] as const;
+/** Stop watching transitions after this duration (ms). */
+const TRANSITION_WATCH_MAX_MS = 180_000;
+/** Full inventory refresh while the tab is visible (ms). */
+const BACKGROUND_REFRESH_MS = 300_000;
+/** Refresh on tab focus when sync is older than this (ms). */
+const STALE_SYNC_MS = 180_000;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,6 +43,13 @@ export class MachinesService {
   private readonly functions = inject(Functions);
   private readonly authService = inject(AuthService);
   private readonly activityService = inject(MachineActivityService);
+
+  private transitionPollTimeout: ReturnType<typeof setTimeout> | null = null;
+  private transitionWatchStartedAt = 0;
+  private transitionPollIndex = 0;
+  private backgroundRefreshInterval: ReturnType<typeof setInterval> | null = null;
+  private visibilityListener: (() => void) | null = null;
+  private watchedMachineForActivity: Machine | null = null;
 
   readonly machines = signal<Machine[]>([]);
   readonly isLoading = signal(true);
@@ -48,7 +64,9 @@ export class MachinesService {
       const user = this.authService.currentUser();
       if (user) {
         void this.loadMachines();
+        this.startBackgroundSync();
       } else {
+        this.stopAllSync();
         this.machines.set([]);
         this.lastSyncedAt.set(null);
         this.errorMessage.set(null);
@@ -58,12 +76,12 @@ export class MachinesService {
     });
   }
 
-  async refresh(): Promise<void> {
+  async refresh(options: { force?: boolean } = {}): Promise<void> {
     if (!this.authService.isAuthenticated()) {
       return;
     }
 
-    await this.loadMachines({ refresh: true });
+    await this.loadMachines({ refresh: true, force: options.force });
   }
 
   async startMachine(machine: Machine): Promise<void> {
@@ -74,8 +92,14 @@ export class MachinesService {
     await this.executeAction(machine, 'stopMachine');
   }
 
-  private async loadMachines(options: { refresh?: boolean } = {}): Promise<void> {
-    const { refresh = false } = options;
+  private async loadMachines(
+    options: { refresh?: boolean; force?: boolean } = {},
+  ): Promise<void> {
+    const { refresh = false, force = false } = options;
+
+    if (refresh && this.isRefreshing() && !force) {
+      return;
+    }
 
     if (refresh) {
       this.isRefreshing.set(true);
@@ -96,6 +120,7 @@ export class MachinesService {
       this.machines.set(machines);
       this.lastSyncedAt.set(result.data.syncedAt);
       this.applyProviderFeedback(machines.length, result.data.providerErrors);
+      this.ensureTransitionWatch();
     } catch (error) {
       this.errorMessage.set(this.toListError(error));
     } finally {
@@ -140,10 +165,8 @@ export class MachinesService {
         }),
       );
 
-      window.setTimeout(() => {
-        void this.loadMachines({ refresh: true });
-        void this.activityService.loadActivity(machine, { force: true });
-      }, 4000);
+      this.watchedMachineForActivity = machine;
+      this.beginTransitionWatch(TRANSITION_POLL_MS[0]);
     } catch (error) {
       this.errorMessage.set(this.toFriendlyError(error));
       throw error;
@@ -174,6 +197,158 @@ export class MachinesService {
 
   private machineSortKey(machine: Machine): string {
     return machine.name ?? machine.machineId ?? machine.id;
+  }
+
+  private hasTransitioningMachines(): boolean {
+    return this.machines().some((machine) => isTransitioning(machine.status));
+  }
+
+  private ensureTransitionWatch(): void {
+    if (!this.hasTransitioningMachines() || this.transitionPollTimeout) {
+      return;
+    }
+
+    const delay =
+      TRANSITION_POLL_MS[Math.min(this.transitionPollIndex, TRANSITION_POLL_MS.length - 1)];
+    this.beginTransitionWatch(delay);
+  }
+
+  private beginTransitionWatch(initialDelayMs: number): void {
+    if (!this.hasTransitioningMachines()) {
+      this.stopTransitionWatch();
+      return;
+    }
+
+    if (!this.transitionWatchStartedAt) {
+      this.transitionWatchStartedAt = Date.now();
+      this.transitionPollIndex = 0;
+    }
+
+    this.queueTransitionPoll(initialDelayMs);
+  }
+
+  private queueTransitionPoll(delayMs: number): void {
+    this.clearTransitionPollTimer();
+    this.transitionPollTimeout = setTimeout(() => {
+      void this.runTransitionPoll();
+    }, delayMs);
+  }
+
+  private async runTransitionPoll(): Promise<void> {
+    this.transitionPollTimeout = null;
+
+    if (!this.authService.isAuthenticated() || !this.hasTransitioningMachines()) {
+      this.stopTransitionWatch();
+      return;
+    }
+
+    if (Date.now() - this.transitionWatchStartedAt > TRANSITION_WATCH_MAX_MS) {
+      this.stopTransitionWatch();
+      return;
+    }
+
+    await this.loadMachines({ refresh: true });
+
+    const machine = this.watchedMachineForActivity;
+    if (machine) {
+      void this.activityService.loadActivity(machine, { force: true });
+      this.watchedMachineForActivity = null;
+    }
+
+    if (!this.hasTransitioningMachines()) {
+      this.stopTransitionWatch();
+      return;
+    }
+
+    this.transitionPollIndex += 1;
+    const delay =
+      TRANSITION_POLL_MS[Math.min(this.transitionPollIndex, TRANSITION_POLL_MS.length - 1)];
+    this.queueTransitionPoll(delay);
+  }
+
+  private clearTransitionPollTimer(): void {
+    if (this.transitionPollTimeout) {
+      clearTimeout(this.transitionPollTimeout);
+      this.transitionPollTimeout = null;
+    }
+  }
+
+  private stopTransitionWatch(): void {
+    this.clearTransitionPollTimer();
+    this.transitionWatchStartedAt = 0;
+    this.transitionPollIndex = 0;
+    this.watchedMachineForActivity = null;
+  }
+
+  private startBackgroundSync(): void {
+    if (this.visibilityListener && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+      this.visibilityListener = null;
+    }
+    this.stopBackgroundRefresh();
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    this.visibilityListener = () => this.onVisibilityChange();
+    document.addEventListener('visibilitychange', this.visibilityListener);
+    this.scheduleBackgroundRefresh();
+  }
+
+  private onVisibilityChange(): void {
+    if (document.visibilityState === 'hidden') {
+      this.stopBackgroundRefresh();
+      this.clearTransitionPollTimer();
+      return;
+    }
+
+    this.refreshIfStale();
+    this.scheduleBackgroundRefresh();
+    this.ensureTransitionWatch();
+  }
+
+  private refreshIfStale(): void {
+    const syncedAt = this.lastSyncedAt();
+    if (!syncedAt) {
+      return;
+    }
+
+    const ageMs = Date.now() - new Date(syncedAt).getTime();
+    if (ageMs >= STALE_SYNC_MS) {
+      void this.loadMachines({ refresh: true });
+    }
+  }
+
+  private scheduleBackgroundRefresh(): void {
+    this.stopBackgroundRefresh();
+
+    if (typeof document === 'undefined' || document.visibilityState === 'hidden') {
+      return;
+    }
+
+    this.backgroundRefreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible' && this.authService.isAuthenticated()) {
+        void this.loadMachines({ refresh: true });
+      }
+    }, BACKGROUND_REFRESH_MS);
+  }
+
+  private stopBackgroundRefresh(): void {
+    if (this.backgroundRefreshInterval) {
+      clearInterval(this.backgroundRefreshInterval);
+      this.backgroundRefreshInterval = null;
+    }
+  }
+
+  private stopAllSync(): void {
+    this.stopTransitionWatch();
+    this.stopBackgroundRefresh();
+
+    if (this.visibilityListener && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+      this.visibilityListener = null;
+    }
   }
 
   private applyProviderFeedback(

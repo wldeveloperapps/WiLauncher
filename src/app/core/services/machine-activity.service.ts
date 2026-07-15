@@ -46,6 +46,10 @@ export class MachineActivityService {
     return Boolean(this.loadingKeys()[this.machineKey(machine)]);
   }
 
+  isLoaded(machine: Machine): boolean {
+    return Boolean(this.loadedKeys()[this.machineKey(machine)]);
+  }
+
   getError(machine: Machine): string | null {
     return this.errorByKey()[this.machineKey(machine)] ?? null;
   }
@@ -55,7 +59,7 @@ export class MachineActivityService {
     if (!options.force && this.loadedKeys()[key]) {
       return;
     }
-    if (this.loadingKeys()[key]) {
+    if (this.loadingKeys()[key] && !options.force) {
       return;
     }
 

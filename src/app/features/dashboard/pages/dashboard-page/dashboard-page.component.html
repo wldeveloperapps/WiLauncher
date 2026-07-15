@@ -91,29 +91,38 @@
     </div>
 
     <div class="dashboard__toolbar-right">
-      <span class="dashboard__results font-mono">
-        {{ 'dashboard.results' | transloco: { filtered: filteredCount(), total: totalCount() } }}
-      </span>
-      <button
-        type="button"
-        class="dashboard__icon-btn"
-        [class.dashboard__icon-btn--spinning]="machinesService.isRefreshing()"
+      <div class="dashboard__sync-meta">
+        <span class="dashboard__results font-mono">
+          {{ 'dashboard.results' | transloco: { filtered: filteredCount(), total: totalCount() } }}
+        </span>
+        @if (lastSyncedTime(); as syncedTime) {
+          <span class="dashboard__last-sync font-mono">
+            {{ 'dashboard.lastSynced' | transloco: { time: syncedTime } }}
+          </span>
+        }
+      </div>
+      <app-button
+        variant="outline"
+        [loading]="machinesService.isRefreshing()"
         [disabled]="machinesService.isRefreshing()"
         [attr.aria-label]="'dashboard.refresh' | transloco"
         [attr.aria-busy]="machinesService.isRefreshing()"
-        (click)="refresh()"
+        (clicked)="refresh()"
       >
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path
-            d="M16 10a6 6 0 1 1-1.7-4.2M16 4v4h-4"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </button>
+        @if (!machinesService.isRefreshing()) {
+          <svg class="dashboard__refresh-icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M16 10a6 6 0 1 1-1.7-4.2M16 4v4h-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        }
+        {{ 'dashboard.refreshShort' | transloco }}
+      </app-button>
     </div>
   </div>
 

@@ -14,6 +14,7 @@ import { SessionService } from '../../../../core/services/session.service';
 import { MachinesService } from '../../../../core/services/machines.service';
 import { MachineDetailDrawerComponent } from '../../components/machine-detail-drawer/machine-detail-drawer.component';
 import { ConfirmDialogComponent } from '../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { EnvChipComponent } from '../../../../shared/ui/env-chip/env-chip.component';
 import { ProviderGlyphComponent } from '../../../../shared/ui/provider-glyph/provider-glyph.component';
 import { SelectComponent, SelectOption } from '../../../../shared/ui/select/select.component';
@@ -34,6 +35,7 @@ interface MachineGroup {
 @Component({
   selector: 'app-dashboard-page',
   imports: [
+    ButtonComponent,
     ConfirmDialogComponent,
     EnvChipComponent,
     MachineDetailDrawerComponent,
@@ -164,6 +166,21 @@ export class DashboardPageComponent {
   readonly totalCount = computed(() => this.machinesService.machines().length);
   readonly filteredCount = computed(() => this.filteredMachines().length);
 
+  readonly lastSyncedTime = computed(() => {
+    this.localeService.activeLang();
+    const syncedAt = this.machinesService.lastSyncedAt();
+    if (!syncedAt) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat(this.localeService.activeLang(), {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(new Date(syncedAt));
+  });
+
   protected isTransitioning = isTransitioning;
 
   protected machineId(machine: Machine): string {
@@ -199,7 +216,7 @@ export class DashboardPageComponent {
   }
 
   protected async refresh(): Promise<void> {
-    await this.machinesService.refresh();
+    await this.machinesService.refresh({ force: true });
   }
 
   protected openDetail(machine: Machine): void {

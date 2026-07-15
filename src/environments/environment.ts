@@ -12,7 +12,7 @@ export const environment: Environment = {
     measurementId: 'G-SD54BMYGC2',
   },
   useEmulators: false,
-  useFunctionsEmulator: true,
+  useFunctionsEmulator: false,
   emulators: {
     auth: 'http://127.0.0.1:9099',
     functionsHost: '127.0.0.1',

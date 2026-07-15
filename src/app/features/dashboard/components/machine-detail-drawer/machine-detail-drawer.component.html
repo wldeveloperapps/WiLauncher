@@ -71,12 +71,34 @@
       </dl>
 
       <section class="drawer__activity">
-        <h3 class="drawer__activity-title">{{ 'dashboard.recentActivity' | transloco }}</h3>
+        <div class="drawer__activity-header">
+          <h3 class="drawer__activity-title">{{ 'dashboard.recentActivity' | transloco }}</h3>
+          <button
+            type="button"
+            class="drawer__activity-refresh"
+            [class.drawer__activity-refresh--spinning]="activityLoading() && activityLoaded()"
+            [disabled]="activityLoading()"
+            [attr.aria-label]="'dashboard.refreshActivity' | transloco"
+            [attr.aria-busy]="activityLoading()"
+            (click)="refreshActivity()"
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M16 10a6 6 0 1 1-1.7-4.2M16 4v4h-4"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
 
         <ul id="machine-activity-list" class="drawer__activity-list">
-          @if (activityLoading()) {
+          @if (activityLoading() && !activityLoaded()) {
             <li class="drawer__activity-empty">{{ 'dashboard.loadingActivity' | transloco }}</li>
-          } @else if (activityError()) {
+          } @else if (activityError() && !activityLogs().length) {
             <li class="drawer__activity-error">{{ activityError() }}</li>
           } @else {
             @for (log of activityLogs(); track log.id) {
