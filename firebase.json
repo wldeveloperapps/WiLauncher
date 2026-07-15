@@ -1,4 +1,8 @@
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
     "public": "dist/wilauncher/browser",
     "ignore": [
@@ -37,6 +41,9 @@
     },
     "functions": {
       "port": 5001
+    },
+    "firestore": {
+      "port": 8080
     },
     "ui": {
       "enabled": true

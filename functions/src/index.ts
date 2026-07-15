@@ -3,6 +3,7 @@ import {logger} from "firebase-functions";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 
+import {recordMachineActionAudit} from "./audit/record-machine-action.js";
 import {
   assertAllowedRole,
   requireAuthenticatedUser,
@@ -25,6 +26,7 @@ const callableOptions = {
 setGlobalOptions({
   maxInstances: 10,
   region: "europe-west1",
+  serviceAccount: "wilauncher-9e648@appspot.gserviceaccount.com",
 });
 
 export const getSessionContext = onCall(callableOptions, async (request) => {
@@ -65,6 +67,8 @@ export const startMachine = onCall(
         input.machineId,
       );
 
+      await recordMachineActionAudit(user, input, "start");
+
       logger.info("Azure VM start requested", {
         machineId: input.machineId,
         uid: user.uid,
@@ -81,6 +85,8 @@ export const startMachine = onCall(
     if (input.provider === "aws") {
       const {startAwsInstance} = await import("./aws/vm-actions.js");
       await startAwsInstance(input.region, input.machineId);
+
+      await recordMachineActionAudit(user, input, "start");
 
       logger.info("AWS instance start requested", {
         machineId: input.machineId,
@@ -119,6 +125,8 @@ export const stopMachine = onCall(
         input.machineId,
       );
 
+      await recordMachineActionAudit(user, input, "stop");
+
       logger.info("Azure VM stop requested", {
         machineId: input.machineId,
         uid: user.uid,
@@ -135,6 +143,8 @@ export const stopMachine = onCall(
     if (input.provider === "aws") {
       const {stopAwsInstance} = await import("./aws/vm-actions.js");
       await stopAwsInstance(input.region, input.machineId);
+
+      await recordMachineActionAudit(user, input, "stop");
 
       logger.info("AWS instance stop requested", {
         machineId: input.machineId,
@@ -164,15 +174,24 @@ export const listMachineActivity = onCall(
     await assertAllowedRole(user.role, ["viewer", "operator", "admin"]);
 
     const input = parseMachineActivityInput(request.data);
+    const {listAuditLogsForMachine} =
+      await import("./audit/list-audit-logs.js");
+    const {mergeActivityLogs} = await import("./audit/merge-activity.js");
+
+    const auditLogs = await listAuditLogsForMachine({
+      machineId: input.machineId,
+      provider: input.provider,
+    });
 
     if (input.provider === "azure") {
       const {listAzureVmActivityLogs} = await import("./azure/activity-log.js");
-      const logs = await listAzureVmActivityLogs({
+      const cloudLogs = await listAzureVmActivityLogs({
         subscriptionId: input.subscriptionId,
         resourceGroup: input.resourceGroup,
         machineId: input.machineId,
         azureResourceId: input.azureResourceId,
       });
+      const logs = mergeActivityLogs(cloudLogs, auditLogs);
 
       logger.info("Azure VM activity listed", {
         machineId: input.machineId,
@@ -186,10 +205,11 @@ export const listMachineActivity = onCall(
     if (input.provider === "aws") {
       const {listAwsInstanceActivityLogs} =
         await import("./aws/activity-log.js");
-      const logs = await listAwsInstanceActivityLogs({
+      const cloudLogs = await listAwsInstanceActivityLogs({
         machineId: input.machineId,
         region: input.region,
       });
+      const logs = mergeActivityLogs(cloudLogs, auditLogs);
 
       logger.info("AWS instance activity listed", {
         machineId: input.machineId,
