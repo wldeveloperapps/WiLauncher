@@ -4,7 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "dist/wilauncher/browser",
+    "public": "dist/WiLauncher/browser",
     "ignore": [
       "firebase.json",
       "**/.*",

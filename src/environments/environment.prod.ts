@@ -19,6 +19,6 @@ export const environment: Environment = {
     functionsPort: 5001,
   },
   auth: {
-    microsoftTenantId: '',
+    microsoftTenantId: 'organizations',
   },
 };
