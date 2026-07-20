@@ -39,7 +39,7 @@ Reutiliza los primitivos del design system Wiloc (Button, Badge, StatusDot, Inpu
 - **StatusBadge**: pill = punto de color de estado + label en mayúsculas. Color por el mapa semántico de §4. `Starting`/`Stopping` pulsan. Es el componente más repetido — hazlo un componente único y testéalo.
 - **Botón primario (verde)**: solo el CTA principal de cada contexto (login, confirmar arranque). No lo repartas por toda la tabla.
 - **Acción de arranque** = botón verde `Arrancar`. **Acción de apagado** = botón outline neutro `Apagar` (destructivo pero reversible; el peso rojo se reserva para el modal de producción).
-- **Chip de entorno**: `DEV` (neutro), `STG` (neutro), `PROD` (**ámbar, con borde**) — PROD siempre visualmente distinto.
+- **Chip de entorno**: `DEV` (neutro), `PRE` (neutro), `PRO` (**ámbar, con borde**) — PRO siempre visualmente distinto.
 - **Glyph de proveedor**: cuadrado con la inicial (A/A/G/O) y color del proveedor. No dibujes los logos oficiales de AWS/Azure/GCP/OCI (marca de terceros); el glyph + texto basta.
 
 ---

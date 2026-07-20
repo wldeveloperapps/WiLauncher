@@ -1,6 +1,6 @@
 export const MACHINE_STATUSES = ['running', 'stopped', 'starting', 'stopping', 'error'] as const;
 export const PROVIDERS = ['aws', 'azure', 'gcp', 'oci'] as const;
-export const ENVIRONMENTS = ['DEV', 'STG', 'PROD'] as const;
+export const ENVIRONMENTS = ['DEV', 'PRE', 'PRO'] as const;
 
 export type MachineStatus = (typeof MACHINE_STATUSES)[number];
 export type Provider = (typeof PROVIDERS)[number];

@@ -31,6 +31,6 @@ export class EnvChipComponent {
   readonly environment = input.required<string>();
 
   protected isProd(): boolean {
-    return this.environment().toUpperCase() === 'PROD';
+    return this.environment().toUpperCase() === 'PRO';
   }
 }

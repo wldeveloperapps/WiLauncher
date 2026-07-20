@@ -59,7 +59,7 @@ export function inferEnvironment(tags?: Record<string, string>): string {
     "DEV";
 
   const normalized = raw.toUpperCase();
-  if (normalized === "PROD" || normalized === "STG" || normalized === "DEV") {
+  if (normalized === "PRO" || normalized === "PRE" || normalized === "DEV") {
     return normalized;
   }
 

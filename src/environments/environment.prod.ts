@@ -19,6 +19,6 @@ export const environment: Environment = {
     functionsPort: 5001,
   },
   auth: {
-    microsoftTenantId: 'organizations',
+    microsoftTenantId: '38c864ec-1b76-42bc-bd0f-f8ea1efe10e0',
   },
 };

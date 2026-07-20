@@ -80,8 +80,8 @@ export class DashboardPageComponent {
     return [
       { value: 'all', labelKey: 'dashboard.allEnvironments' },
       { value: 'DEV', label: 'DEV' },
-      { value: 'STG', label: 'STG' },
-      { value: 'PROD', label: 'PROD' },
+      { value: 'PRE', label: 'PRE' },
+      { value: 'PRO', label: 'PRO' },
     ];
   });
 
@@ -296,7 +296,7 @@ export class DashboardPageComponent {
   }
 
   protected isProdConfirm(): boolean {
-    return this.pendingAction()?.machine.environment.toUpperCase() === 'PROD';
+    return this.pendingAction()?.machine.environment.toUpperCase() === 'PRO';
   }
 
   protected confirmLabel(): string {
