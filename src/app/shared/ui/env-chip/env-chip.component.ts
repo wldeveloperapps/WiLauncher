@@ -1,5 +1,7 @@
 import { Component, input } from '@angular/core';
 
+import { isProductionEnvironment } from '../../../core/models/machine.model';
+
 @Component({
   selector: 'app-env-chip',
   template: `
@@ -31,6 +33,6 @@ export class EnvChipComponent {
   readonly environment = input.required<string>();
 
   protected isProd(): boolean {
-    return this.environment().toUpperCase() === 'PRO';
+    return isProductionEnvironment(this.environment());
   }
 }

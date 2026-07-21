@@ -1,7 +1,7 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
-import { isTransitioning, Machine, MachineStatus, Provider } from '../models/machine.model';
+import { isProductionEnvironment, isTransitioning, Machine, MachineStatus, Provider } from '../models/machine.model';
 import { AuthService } from './auth.service';
 import { MachineActivityService } from './machine-activity.service';
 
@@ -133,6 +133,13 @@ export class MachinesService {
     machine: Machine,
     functionName: 'startMachine' | 'stopMachine',
   ): Promise<void> {
+    if (isProductionEnvironment(machine.environment)) {
+      this.errorMessage.set(
+        'Las acciones de arranque y apagado no están permitidas en entornos PRO.',
+      );
+      return;
+    }
+
     const actionKey = machine.machineId ?? machine.id;
     this.actionInProgress.set(actionKey);
     this.errorMessage.set(null);

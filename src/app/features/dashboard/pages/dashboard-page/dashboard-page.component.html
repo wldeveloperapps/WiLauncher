@@ -190,7 +190,7 @@
                   </td>
                   @if (sessionService.canOperate()) {
                     <td class="dashboard__actions">
-                      @if (machine.status === 'running') {
+                      @if (canShowActions(machine) && machine.status === 'running') {
                         <button
                           type="button"
                           class="dashboard__action dashboard__action--outline"
@@ -203,7 +203,7 @@
                           {{ 'dashboard.stop' | transloco }}
                         </button>
                       }
-                      @if (machine.status === 'stopped') {
+                      @if (canShowActions(machine) && machine.status === 'stopped') {
                         <button
                           type="button"
                           class="dashboard__action dashboard__action--primary"
@@ -257,7 +257,7 @@
                 }
               </div>
 
-              @if (sessionService.canOperate()) {
+              @if (sessionService.canOperate() && canShowActions(machine)) {
                 <div class="machine-card__actions">
                   @if (machine.status === 'running') {
                     <button
@@ -297,7 +297,7 @@
   <app-machine-detail-drawer
     [open]="selectedMachine() !== null"
     [machine]="selectedMachineSnapshot()"
-    [canOperate]="sessionService.canOperate()"
+    [canOperate]="sessionService.canOperate() && !!selectedMachineSnapshot() && canShowActions(selectedMachineSnapshot()!)"
     [actionDisabled]="selectedMachineSnapshot() ? isActionDisabled(selectedMachineSnapshot()!) : false"
     (closed)="closeDetail()"
     (startRequested)="requestStart($event)"

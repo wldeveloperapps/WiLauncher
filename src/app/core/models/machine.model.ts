@@ -69,3 +69,7 @@ export function providerInitial(provider: Provider): string {
 export function isTransitioning(status: MachineStatus): boolean {
   return status === 'starting' || status === 'stopping';
 }
+
+export function isProductionEnvironment(environment: string): boolean {
+  return environment.toUpperCase() === 'PRO';
+}

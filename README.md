@@ -35,8 +35,8 @@ WiLauncher deberá permitir:
   - Starting
   - Stopping
   - Error
-- Arranque de máquinas.
-- Apagado de máquinas.
+- Arranque de máquinas (entornos DEV y PRE).
+- Apagado de máquinas (entornos DEV y PRE).
 - Filtrado por:
   - Proveedor cloud
   - Entorno
@@ -75,7 +75,7 @@ Principios de diseño:
 - Mínimo privilegio.
 - Credenciales fuera del frontend.
 - Auditoría completa de acciones.
-- Confirmaciones adicionales para entornos productivos.
+- Sin acciones de arranque ni apagado en entornos productivos (PRO); bloqueadas en UI y backend.
 - Gestión de permisos por rol.
 
 ## Roles previstos
@@ -86,7 +86,7 @@ Puede consultar información.
 
 ### Operator
 
-Puede arrancar y detener máquinas.
+Puede arrancar y detener máquinas en entornos no productivos (DEV y PRE).
 
 ### Admin
 

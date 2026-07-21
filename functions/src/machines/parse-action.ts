@@ -42,6 +42,13 @@ export function parseMachineActionInput(data: unknown): MachineActionInput {
     );
   }
 
+  if (environment.toUpperCase() === "PRO") {
+    throw new HttpsError(
+      "failed-precondition",
+      "Las acciones de arranque y apagado no estan permitidas en entornos PRO.",
+    );
+  }
+
   if (provider === "azure" && (!subscriptionId || !resourceGroup)) {
     throw new HttpsError(
       "invalid-argument",

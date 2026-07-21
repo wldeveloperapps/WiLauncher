@@ -5,6 +5,7 @@ import {
   Machine,
   Provider,
   PROVIDERS,
+  isProductionEnvironment,
   isTransitioning,
   providerLabel,
 } from '../../../../core/models/machine.model';
@@ -199,6 +200,10 @@ export class DashboardPageComponent {
     );
   }
 
+  protected canShowActions(machine: Machine): boolean {
+    return !isProductionEnvironment(machine.environment);
+  }
+
   protected toggleFilters(): void {
     this.filtersOpen.update((open) => !open);
   }
@@ -241,11 +246,13 @@ export class DashboardPageComponent {
 
   protected requestStart(machine: Machine, event?: Event): void {
     event?.stopPropagation();
+    if (!this.canShowActions(machine)) return;
     this.openConfirm({ machine, action: 'start' });
   }
 
   protected requestStop(machine: Machine, event?: Event): void {
     event?.stopPropagation();
+    if (!this.canShowActions(machine)) return;
     this.openConfirm({ machine, action: 'stop' });
   }
 
@@ -296,7 +303,8 @@ export class DashboardPageComponent {
   }
 
   protected isProdConfirm(): boolean {
-    return this.pendingAction()?.machine.environment.toUpperCase() === 'PRO';
+    const environment = this.pendingAction()?.machine.environment;
+    return environment ? isProductionEnvironment(environment) : false;
   }
 
   protected confirmLabel(): string {
@@ -314,7 +322,7 @@ export class DashboardPageComponent {
 
   protected async onConfirm(): Promise<void> {
     const pending = this.pendingAction();
-    if (!pending) return;
+    if (!pending || !this.canShowActions(pending.machine)) return;
 
     this.confirmLoading.set(true);
     try {
